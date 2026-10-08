@@ -25,7 +25,6 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
-          flutter-version: "3.24.5"
           cache: true
 
       - name: Crear carpetas de Android, iOS y web (sólo si faltan)
@@ -88,7 +87,6 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
-          flutter-version: "3.24.5"
           cache: true
 
       - name: Crear carpetas de Android, iOS y web (sólo si faltan)
