@@ -1,5 +1,8 @@
 import 'package:flutter/cupertino.dart';
+import 'dart:async';
+
 import 'package:flutter/material.dart' show Icons;
+import 'package:flutter/services.dart';
 
 import '../datos/lugares.dart';
 import '../estado.dart';
@@ -30,11 +33,21 @@ class _ViajePantallaState extends State<ViajePantalla> {
   int _sel = 0;
   final _hoja = DraggableScrollableController();
 
+  /// Minutos después de ahora a los que piensas salir (0, 10, 20 o 30).
+  int _salirEn = 0;
+
+  /// Aviso de "sal ya / tu combi está llegando" para la opción elegida.
+  bool _alerta = false;
+  final Set<String> _avisados = {};
+  String? _banner;
+  Timer? _vigia;
+
   @override
   void initState() {
     super.initState();
     destinoPedido.addListener(_alPedirDestino);
     pedirBusqueda.addListener(_alPedirBusqueda);
+    _vigia = Timer.periodic(const Duration(seconds: 1), (_) => _vigilar());
     _desde = desdeInicial;
     _hasta = hastaInicial;
     desdeInicial = null;
@@ -62,6 +75,7 @@ class _ViajePantallaState extends State<ViajePantalla> {
   void dispose() {
     destinoPedido.removeListener(_alPedirDestino);
     _hoja.dispose();
+    _vigia?.cancel();
     pedirBusqueda.removeListener(_alPedirBusqueda);
     super.dispose();
   }
@@ -121,7 +135,7 @@ class _ViajePantallaState extends State<ViajePantalla> {
       setState(() => _opciones = null);
       return;
     }
-    final ahora = segundosAhora();
+    final ahora = segundosAhora() + _salirEn * 60;
     final ops = _planificador.planear(
       _desde!.punto,
       _hasta!.punto,
@@ -133,7 +147,48 @@ class _ViajePantallaState extends State<ViajePantalla> {
       _opciones = ops;
       _calculadoA = ahora;
       _sel = 0;
+      _avisados.clear();
     });
+  }
+
+  /// Revisa cada segundo si toca avisar: cuando hay que salir caminando y cuando la combi está por llegar.
+  void _vigilar() {
+    final ops = _opciones;
+    if (!_alerta || ops == null || ops.isEmpty || !mounted) return;
+    final o = ops[_sel.clamp(0, ops.length - 1)];
+    if (o.enCombi.isEmpty) return;
+    final t = o.enCombi.first;
+    final ahora = segundosAhora();
+    final caminar = o.tramos.first.tipo == TipoTramo.pie ? o.tramos.first.segundos : 0.0;
+    final salirA = t.inicio - caminar - 60; // un minuto de margen
+    void avisar(String clave, String texto) {
+      if (_avisados.contains(clave)) return;
+      _avisados.add(clave);
+      HapticFeedback.heavyImpact();
+      setState(() => _banner = texto);
+    }
+
+    if (ahora >= salirA && ahora < t.inicio - 120) {
+      avisar('salir', '¡Sal ya! Camina ${duracion(caminar)} a ${t.sube!.nombre}: la ${t.ruta!.nombre} pasa a las ${hora(t.inicio)}.');
+    }
+    if (ahora >= t.inicio - 120 && ahora < t.inicio) {
+      avisar('llega', 'La ${t.ruta!.nombre} llega a ${t.sube!.nombre} en menos de 2 min.');
+    }
+  }
+
+  /// Copia el viaje en texto para mandarlo por WhatsApp o mensaje.
+  Future<void> _copiar(Opcion o) async {
+    final b = StringBuffer('AppParadas · ${_desde!.nombre} → ${_hasta!.nombre}\n');
+    b.writeln('Sales ${hora(o.salida)} y llegas ${hora(o.llegada)} (${duracion(o.total)}).');
+    for (final t in o.tramos) {
+      if (t.tipo == TipoTramo.pie) {
+        if (t.segundos >= 30) b.writeln('• Camina ${duracion(t.segundos)} a ${t.hastaNombre}');
+      } else {
+        b.writeln('• ${t.ruta!.nombre} (${t.ruta!.apodo}) en ${t.sube!.nombre} a las ${hora(t.inicio)}; bájate en ${t.baja!.nombre}');
+      }
+    }
+    await Clipboard.setData(ClipboardData(text: b.toString()));
+    if (mounted) setState(() => _banner = 'Viaje copiado. Pégalo en WhatsApp para avisar por dónde vas.');
   }
 
   void _abrir(Opcion o) => Navigator.of(context).push(CupertinoPageRoute<void>(
@@ -180,6 +235,25 @@ class _ViajePantallaState extends State<ViajePantalla> {
           ),
         ),
         Positioned(left: 0, right: 0, top: arriba + 4, child: _formulario()),
+        if (_banner != null)
+          Positioned(
+            left: 16,
+            right: 16,
+            top: arriba + 150,
+            child: GestureDetector(
+              onTap: () => setState(() => _banner = null),
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+                decoration: BoxDecoration(color: const Color(0xF0111111), borderRadius: BorderRadius.circular(16), boxShadow: Tema.sombra),
+                child: Row(children: [
+                  const Icon(Icons.notifications_active_rounded, color: Tema.amarillo),
+                  const SizedBox(width: 10),
+                  Expanded(child: Text(_banner!, style: Tema.texto(size: 14, weight: FontWeight.w600, color: const Color(0xFFFFFFFF)))),
+                  const Icon(Icons.close_rounded, color: Tema.grisClaro, size: 18),
+                ]),
+              ),
+            ),
+          ),
         Positioned.fill(
           child: HojaDeslizable(
             controlador: _hoja,
@@ -196,6 +270,61 @@ class _ViajePantallaState extends State<ViajePantalla> {
                     minimumSize: const Size(30, 30),
                     onPressed: _calcular,
                     child: Text('Actualizar', style: Tema.texto(size: 14, weight: FontWeight.w600, color: Tema.azul)),
+                  ),
+                ]),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 2, 16, 8),
+                child: CupertinoSlidingSegmentedControl<int>(
+                  groupValue: _salirEn,
+                  onValueChanged: (v) {
+                    setState(() => _salirEn = v ?? 0);
+                    _calcular();
+                  },
+                  children: {
+                    for (final m in const [0, 10, 20, 30])
+                      m: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 6),
+                        child: Text(m == 0 ? 'Salir ahora' : '+$m min', style: Tema.texto(size: 13, weight: FontWeight.w600)),
+                      ),
+                  },
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 6),
+                child: Row(children: [
+                  Expanded(
+                    child: CupertinoButton(
+                      padding: const EdgeInsets.symmetric(vertical: 9),
+                      color: _alerta ? Tema.verde : Tema.tarjeta,
+                      borderRadius: BorderRadius.circular(12),
+                      onPressed: () => setState(() {
+                        _alerta = !_alerta;
+                        _avisados.clear();
+                        _banner = _alerta ? 'Te aviso cuando tengas que salir y cuando tu combi esté por llegar.' : null;
+                      }),
+                      child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                        Icon(_alerta ? Icons.notifications_active_rounded : Icons.notifications_none_rounded,
+                            size: 18, color: _alerta ? const Color(0xFFFFFFFF) : Tema.tinta),
+                        const SizedBox(width: 6),
+                        Text(_alerta ? 'Aviso activado' : 'Avísame',
+                            style: Tema.texto(size: 14, weight: FontWeight.w700, color: _alerta ? const Color(0xFFFFFFFF) : Tema.tinta)),
+                      ]),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: CupertinoButton(
+                      padding: const EdgeInsets.symmetric(vertical: 9),
+                      color: Tema.tarjeta,
+                      borderRadius: BorderRadius.circular(12),
+                      onPressed: () => _copiar(ops[_sel.clamp(0, ops.length - 1)]),
+                      child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                        const Icon(Icons.ios_share_rounded, size: 18, color: Tema.tinta),
+                        const SizedBox(width: 6),
+                        Text('Compartir', style: Tema.texto(size: 14, weight: FontWeight.w700)),
+                      ]),
+                    ),
                   ),
                 ]),
               ),
@@ -387,6 +516,8 @@ class TarjetaOpcion extends StatelessWidget {
         ]),
         const SizedBox(height: 10),
         SecuenciaTramos(opcion: o),
+        const SizedBox(height: 8),
+        BarraTiempo(opcion: o),
         if (primera != null) ...[
           const SizedBox(height: 10),
           ConReloj(
@@ -444,5 +575,38 @@ class SecuenciaTramos extends StatelessWidget {
       }
     }
     return Wrap(crossAxisAlignment: WrapCrossAlignment.center, runSpacing: 6, children: piezas);
+  }
+}
+
+
+/// Barra con el tiempo del viaje repartido: caminar (gris), esperar (claro) y en combi (color de la ruta).
+class BarraTiempo extends StatelessWidget {
+  final Opcion opcion;
+  const BarraTiempo({super.key, required this.opcion});
+
+  @override
+  Widget build(BuildContext context) {
+    final partes = <(int, Color)>[];
+    for (final t in opcion.tramos) {
+      if (t.tipo == TipoTramo.pie) {
+        if (t.segundos >= 20) partes.add((t.segundos.round(), Tema.grisClaro));
+      } else {
+        if (t.espera >= 20) partes.add((t.espera.round(), const Color(0xFFE5E5EA)));
+        partes.add((t.segundos.round(), t.ruta!.color));
+      }
+    }
+    if (partes.isEmpty) return const SizedBox.shrink();
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(4),
+      child: SizedBox(
+        height: 8,
+        child: Row(children: [
+          for (var i = 0; i < partes.length; i++) ...[
+            if (i > 0) const SizedBox(width: 2),
+            Expanded(flex: partes[i].$1.clamp(1, 100000), child: Container(color: partes[i].$2)),
+          ],
+        ]),
+      ),
+    );
   }
 }

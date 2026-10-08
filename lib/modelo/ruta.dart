@@ -128,6 +128,14 @@ class Ruta {
     return _s[lo] + (_s[hi] - _s[lo]) * (e - _t[lo]) / dt;
   }
 
+  /// La pausa (parada o semáforo) donde está detenida una combi en el metro [m], si hay.
+  Pausa? pausaEn(double m) {
+    for (final p in pausas) {
+      if ((p.metros - m).abs() < 0.6) return p;
+    }
+    return null;
+  }
+
   /// Todas las combis que van en el recorrido en el segundo [t] del día.
   List<CombiEnRuta> combisEn(double t) {
     final r = <CombiEnRuta>[];

@@ -7,6 +7,7 @@ import '../datos/lugares.dart';
 import '../estado.dart';
 import '../modelo/geo.dart';
 import '../modelo/ruta.dart';
+import '../pantallas/parada_3d.dart';
 import '../pantallas/ruta_detalle.dart';
 import '../tema.dart';
 import 'comunes.dart';
@@ -157,6 +158,24 @@ class _HojaParadaState extends State<HojaParada> {
           ],
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            child: CupertinoButton(
+              color: Tema.amarillo,
+              padding: const EdgeInsets.symmetric(vertical: 13),
+              borderRadius: BorderRadius.circular(14),
+              onPressed: () {
+                final nav = Navigator.of(context);
+                nav.pop();
+                nav.push(CupertinoPageRoute<void>(builder: (_) => Parada3D(parada: p)));
+              },
+              child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                const Icon(Icons.view_in_ar_rounded, color: Tema.tinta),
+                const SizedBox(width: 8),
+                Text('Ver parada en 3D', style: Tema.texto(weight: FontWeight.w700)),
+              ]),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
             child: Row(children: [
               Expanded(
                 child: CupertinoButton(

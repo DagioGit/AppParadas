@@ -57,6 +57,23 @@ Future<void> prepararEscena(ml.MapLibreMapController c) async {
     'viaje-linea',
     ml.LineLayerProperties(lineColor: ['get', 'color'], lineWidth: ['get', 'ancho'], lineOpacity: ['coalesce', ['get', 'opacidad'], 1], lineJoin: 'round', lineCap: 'round'),
   );
+  // Flechas sobre los recorridos del viaje: hacia dónde va la combi
+  await c.addSymbolLayer(
+    'viaje',
+    'viaje-flechas',
+    ml.SymbolLayerProperties(
+      symbolPlacement: 'line',
+      symbolSpacing: 70,
+      textField: '›',
+      textFont: ['Noto Sans Bold'],
+      textSize: 22,
+      textColor: '#ffffff',
+      textOpacity: ['coalesce', ['get', 'opacidad'], 1],
+      textKeepUpright: false,
+      textAllowOverlap: true,
+      textIgnorePlacement: true,
+    ),
+  );
   // Caminatas: línea punteada gris
   await c.addLineLayer(
     'pie',

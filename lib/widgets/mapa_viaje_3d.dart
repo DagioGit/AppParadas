@@ -181,6 +181,29 @@ class _MapaViaje3DState extends State<MapaViaje3D> {
         if (i != widget.seleccion) i,
       if (widget.seleccion < widget.opciones.length) widget.seleccion,
     ];
+    // Las demás combis de esas rutas, más chicas: así se ve por dónde vienen todas
+    final mias = <String>{
+      for (final o in widget.opciones)
+        for (final t in o.enCombi) '${t.ruta!.id}|${t.ruta!.salidaDe(t.sube!, t.inicio).round()}',
+    };
+    final usadas = <String, Ruta>{
+      for (final o in widget.opciones)
+        for (final t in o.enCombi) t.ruta!.id: t.ruta!,
+    };
+    for (final r in usadas.values) {
+      for (final cb in r.combisEn(ahora)) {
+        if (mias.contains(refCombi(cb))) continue;
+        combis.addAll(combi3d(r, cb.punto, r.trazo.rumboEn(cb.metros), refCombi(cb), techo: techoSegun(cb), escala: 0.7));
+        puntos.add(punto(cb.punto, {
+          'color': hexColor(r.color),
+          'texto': '${r.numero}',
+          'letra': r.color.computeLuminance() > 0.5 ? '#111111' : '#ffffff',
+          'radio': 6.0,
+          'tipo': 'combi',
+        }));
+      }
+    }
+
     for (final i in orden) {
       final o = widget.opciones[i];
       final elegida = i == widget.seleccion;
@@ -200,8 +223,10 @@ class _MapaViaje3DState extends State<MapaViaje3D> {
         if (m != null && ahora < t.fin) {
           final p = r.trazo.puntoEn(m);
           final ref = '$i|$k';
+          final pausa = r.pausaEn(m);
+          final techo = pausa == null ? null : (pausa.parada != null ? '#34c759' : '#ff3b30');
           combis.addAll([
-            for (final f in combi3d(r, p, r.trazo.rumboEn(m), ref, resaltada: elegida))
+            for (final f in combi3d(r, p, r.trazo.rumboEn(m), ref, resaltada: elegida, techo: techo))
               {...f, 'properties': {...(f['properties'] as Map<String, dynamic>), 'opcion': i}},
           ]);
           puntos.add(punto(p, {
@@ -215,7 +240,7 @@ class _MapaViaje3DState extends State<MapaViaje3D> {
           final texto = ahora < t.inicio
               ? (ahora < r.salidaDe(t.sube!, t.inicio)
                   ? 'Ruta ${r.numero} · sale a las ${hora(r.salidaDe(t.sube!, t.inicio))}'
-                  : 'Ruta ${r.numero} · llega ${faltaTexto(t.inicio, ahora)}')
+                  : 'Ruta ${r.numero} · a ${(((t.sube!.metros - m) % r.trazo.largo) / 1000).toStringAsFixed(1)} km · llega ${faltaTexto(t.inicio, ahora)}')
               : 'Vas en la Ruta ${r.numero} · bajas ${faltaTexto(t.fin, ahora)}';
           etiquetas.add(etiqueta(p, texto, elegida ? Tema.tinta : Tema.gris, prioridad: elegida ? 1 : 4));
         }

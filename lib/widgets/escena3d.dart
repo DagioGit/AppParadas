@@ -122,16 +122,25 @@ Map<String, dynamic> geoSemaforos() => coleccion([
 // ---------------- Combis ----------------
 
 /// Combi en 3D (exagerada): carrocería del color de la ruta, ventanas oscuras y techo blanco.
-List<Map<String, dynamic>> combi3d(Ruta r, LatLng p, double rumbo, String ref, {bool resaltada = false}) {
+List<Map<String, dynamic>> combi3d(Ruta r, LatLng p, double rumbo, String ref, {bool resaltada = false, String? techo, double escala = 1}) {
   final props = {'tipo': 'combi', 'ref': ref};
   final color = colorFuerte(r);
-  final k = resaltada ? 2.6 : 2.1;
+  final k = (resaltada ? 2.6 : 2.1) * escala;
   return [
     caja(rectangulo(p, 16 * k, 7 * k, rumbo, derecha: 4), color, 0.6, 4.2 * k, props),
     caja(rectangulo(p, 12.5 * k, 7.2 * k, rumbo, adelante: -1.2 * k, derecha: 4), '#1f2a36', 4.2 * k, 6 * k, props),
     caja(rectangulo(p, 2.2 * k, 7.2 * k, rumbo, adelante: 6.2 * k, derecha: 4), '#1f2a36', 3.4 * k, 5.6 * k, props),
-    caja(rectangulo(p, 15 * k, 6.6 * k, rumbo, adelante: -0.6 * k, derecha: 4), resaltada ? '#34c759' : '#ffffff', 6 * k, 6.9 * k, props),
+    caja(rectangulo(p, 15 * k, 6.6 * k, rumbo, adelante: -0.6 * k, derecha: 4), techo ?? (resaltada ? '#0a84ff' : '#ffffff'), 6 * k, 6.9 * k, props),
   ];
+}
+
+/// Color del techo según lo que hace la combi: verde = en parada (sube y baja gente),
+/// rojo = en el semáforo, blanco = avanzando.
+String? techoSegun(CombiEnRuta c) {
+  if (!c.detenida) return null;
+  final p = c.ruta.pausaEn(c.metros);
+  if (p == null) return null;
+  return p.parada != null ? '#34c759' : '#ff3b30';
 }
 
 String refCombi(CombiEnRuta c) => '${c.ruta.id}|${c.salida.round()}';
@@ -161,7 +170,7 @@ Map<String, dynamic> geoCombis(Iterable<Ruta> rs, double ahora, {Set<String> res
   for (final r in rs) {
     for (final c in r.combisEn(ahora)) {
       final ref = refCombi(c);
-      f.addAll(combi3d(r, c.punto, r.trazo.rumboEn(c.metros), ref, resaltada: resaltadas.contains(ref)));
+      f.addAll(combi3d(r, c.punto, r.trazo.rumboEn(c.metros), ref, resaltada: resaltadas.contains(ref), techo: techoSegun(c)));
     }
   }
   return coleccion(f);
@@ -191,3 +200,50 @@ Map<String, dynamic> geoPie(Opcion? o) => coleccion([
 /// [prioridad]: las de número menor se colocan primero y no se tapan.
 Map<String, dynamic> etiqueta(LatLng p, String texto, Color color, {int prioridad = 5}) =>
     punto(p, {'texto': texto, 'color': hexColor(color), 'prioridad': prioridad});
+
+
+// ---------------- Vista de parada en 3D (escala real) ----------------
+
+/// Caseta LZC a escala real (8 m × 3 m): banqueta, postes, techo, respaldo de cristal, banca,
+/// tótem con pantalla del contador y letrero de la ruta.
+List<Map<String, dynamic>> casetaReal(Parada p, {bool combiEnParada = false}) {
+  final r = p.ruta;
+  final rumbo = r.trazo.rumboEn(p.metros);
+  final c = p.punto;
+  const lado = 7.5; // de la línea de la ruta a la caseta
+  final color = colorFuerte(r);
+  final ref = {'tipo': 'parada', 'ref': p.id};
+  Map<String, dynamic> b(double largo, double ancho, String col, double base, double alto, {double adelante = 0, double derecha = 0}) =>
+      caja(rectangulo(c, largo, ancho, rumbo, adelante: adelante, derecha: lado + derecha), col, base, alto, ref);
+  return [
+    b(11, 5, '#c7c7cc', 0, 0.25), // banqueta
+    b(11, 0.35, '#f2c200', 0, 0.27, derecha: -2.4), // guarnición amarilla
+    for (final a in [-3.8, 3.8])
+      for (final d in [-1.2, 1.3]) b(0.18, 0.18, '#3a3a3c', 0.25, 2.75, adelante: a, derecha: d), // postes
+    b(8.6, 3.3, color, 2.75, 2.95), // techo
+    b(8.2, 3.0, '#ffffff', 2.95, 3.0), // panel solar (borde)
+    b(7.6, 2.6, '#1c3d5a', 2.96, 3.02), // panel solar
+    b(7.4, 0.08, '#bcd9ea', 0.45, 2.5, derecha: 1.3), // respaldo de cristal
+    b(4.8, 0.5, '#8e5a2b', 0.45, 0.55, derecha: 0.9), // banca
+    for (final a in [-2.0, 2.0]) b(0.12, 0.4, '#3a3a3c', 0.25, 0.45, adelante: a, derecha: 0.9),
+    b(0.4, 0.4, '#1c1c1e', 0.25, 2.9, adelante: 4.9, derecha: -0.6), // tótem
+    b(0.9, 0.18, combiEnParada ? '#34c759' : '#f2c200', 1.6, 2.6, adelante: 4.9, derecha: -0.6), // pantalla
+    b(0.9, 0.2, color, 2.9, 3.4, adelante: 4.9, derecha: -0.6), // letrero de la ruta
+  ];
+}
+
+/// Combi a escala real (5.5 m × 2.1 m), con ventanas y techo que cambia de color al detenerse.
+List<Map<String, dynamic>> combiReal(Ruta r, LatLng p, double rumbo, String ref, {String? techo, bool resaltada = false}) {
+  final props = {'tipo': 'combi', 'ref': ref};
+  final color = colorFuerte(r);
+  Map<String, dynamic> b(double largo, double ancho, String col, double base, double alto, {double adelante = 0}) =>
+      caja(rectangulo(p, largo, ancho, rumbo, adelante: adelante, derecha: 1.6), col, base, alto, props);
+  return [
+    for (final a in [-1.7, 1.7]) b(0.7, 2.2, '#1c1c1e', 0.0, 0.6, adelante: a), // llantas
+    b(5.4, 2.0, color, 0.35, 1.3), // carrocería
+    b(4.0, 2.04, '#1f2a36', 1.3, 2.0, adelante: -0.6), // ventanas
+    b(0.9, 2.04, '#1f2a36', 1.2, 1.9, adelante: 2.1), // parabrisas
+    b(4.6, 1.96, color, 2.0, 2.25, adelante: -0.3),
+    b(4.2, 1.7, techo ?? (resaltada ? '#0a84ff' : '#ffffff'), 2.25, 2.4, adelante: -0.4), // techo
+  ];
+}

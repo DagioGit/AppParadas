@@ -6,6 +6,7 @@ import '../modelo/ruta.dart';
 import '../tema.dart';
 import '../widgets/comunes.dart';
 import '../widgets/hoja_parada.dart';
+import 'parada_3d.dart';
 
 /// Paradas de una ruta (por defecto la Ruta 1 sobre la Av. Lázaro Cárdenas) con su
 /// mapa, semáforos, combis en movimiento y cuenta regresiva de cada parada.
@@ -230,7 +231,15 @@ class _FilaLlegada extends StatelessWidget {
               Text(hora(llegada), style: Tema.chico),
             ]),
           ),
-          const Icon(Icons.chevron_right_rounded, color: Tema.grisClaro, size: 20),
+          GestureDetector(
+            onTap: () => Navigator.of(context).push(CupertinoPageRoute<void>(builder: (_) => Parada3D(parada: parada))),
+            child: Container(
+              margin: const EdgeInsets.only(left: 4),
+              padding: const EdgeInsets.all(7),
+              decoration: BoxDecoration(color: Tema.amarillo, borderRadius: BorderRadius.circular(10)),
+              child: const Icon(Icons.view_in_ar_rounded, size: 20, color: Tema.tinta),
+            ),
+          ),
         ]),
       ),
     );

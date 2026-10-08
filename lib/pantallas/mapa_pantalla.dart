@@ -51,7 +51,8 @@ class _MapaPantallaState extends State<MapaPantalla> {
   bool _tresD = true;
   Timer? _reloj;
 
-  final Set<String> _visibles = {'R1', 'R2'};
+  // El mapa principal muestra sólo la Ruta 1 (Av. Lázaro Cárdenas)
+  final Set<String> _visibles = {'R1'};
   final _hoja = DraggableScrollableController();
   LatLng _yo = origenDemo;
   bool _yoReal = false;
@@ -95,7 +96,7 @@ class _MapaPantallaState extends State<MapaPantalla> {
       _Cercana? mejor;
       for (final p in r.paradas.where((p) => p.principal)) {
         final d = distanciaM(_yo, p.punto);
-        if (d > 900) continue;
+        if (d > 3000) continue;
         final s = segundosAPie(_yo, p.punto);
         if (mejor == null || s < mejor.caminando) mejor = _Cercana(p, s);
       }
@@ -196,6 +197,19 @@ class _MapaPantallaState extends State<MapaPantalla> {
         destacadas.add('${r.id}|${salida.round()}');
         final p = r.combiQueLlega(x.parada, llegada, ahora);
         if (p != null) etiquetas.add(etiqueta(p, 'Combi ${r.numero} → tu parada ${faltaTexto(llegada, ahora)}', Tema.tinta, prioridad: 2));
+      }
+    }
+    // Combis detenidas: en parada (techo verde) o en el semáforo (techo rojo)
+    if (o == null) {
+      for (final r in _rutasVisibles) {
+        for (final cb in r.combisEn(ahora)) {
+          if (!cb.detenida) continue;
+          final pausa = r.pausaEn(cb.metros);
+          if (pausa == null) continue;
+          etiquetas.add(pausa.parada != null
+              ? etiqueta(cb.punto, 'En parada · ${pausa.parada!.nombre}', Tema.verde, prioridad: 4)
+              : etiqueta(cb.punto, 'Semáforo en rojo', const Color(0xFFD70015), prioridad: 5));
+        }
       }
     }
     etiquetas.add(etiqueta(_yo, 'Estás aquí', Tema.azul, prioridad: 0));
@@ -404,40 +418,10 @@ class _MapaPantallaState extends State<MapaPantalla> {
           top: arriba + 10,
           child: _destino == null ? _buscador() : _barraViaje(),
         ),
-        // Filtros de rutas (sólo sin viaje)
-        if (_destino == null)
-          Positioned(
-            left: 0,
-            right: 0,
-            top: arriba + 72,
-            child: SizedBox(
-              height: 42,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                children: [
-                  for (final r in rutas)
-                    Padding(
-                      padding: const EdgeInsets.only(right: 8, bottom: 6),
-                      child: PildoraRuta(
-                        r,
-                        activa: _visibles.contains(r.id),
-                        onTap: () {
-                          setState(() {
-                            if (!_visibles.remove(r.id)) _visibles.add(r.id);
-                          });
-                          _dibujarTodo();
-                        },
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ),
         // Botones
         Positioned(
           right: 16,
-          top: arriba + 124,
+          top: arriba + 72,
           child: Column(children: [
             _BotonTexto(texto: _tresD ? '2D' : '3D', onTap: _cambiarVista),
             const SizedBox(height: 10),
@@ -446,14 +430,14 @@ class _MapaPantallaState extends State<MapaPantalla> {
         ),
         Positioned(
           left: 16,
-          top: arriba + 124,
+          top: arriba + 72,
           child: IgnorePointer(child: _leyenda()),
         ),
         if (_aviso != null)
           Positioned(
             left: 16,
             right: 80,
-            top: arriba + 230,
+            top: arriba + 200,
             child: GestureDetector(
               onTap: () => setState(() => _aviso = null),
               child: Container(
@@ -492,6 +476,8 @@ class _MapaPantallaState extends State<MapaPantalla> {
         item(Container(width: 18, height: 10, decoration: BoxDecoration(color: const Color(0xFF3A3A3C), borderRadius: BorderRadius.circular(3), border: Border.all(color: const Color(0xFFFFFFFF), width: 1.5))), 'Combi en vivo'),
         item(Container(width: 16, height: 12, decoration: BoxDecoration(color: Tema.amarillo, borderRadius: BorderRadius.circular(2))), 'Caseta (parada)'),
         item(iconoSemaforo(alto: 16), 'Semáforo'),
+        item(Container(width: 18, height: 6, color: const Color(0xFF34C759)), 'Techo verde: en parada'),
+        item(Container(width: 18, height: 6, color: const Color(0xFFFF3B30)), 'Techo rojo: semáforo'),
         item(Container(width: 12, height: 12, decoration: const BoxDecoration(color: Tema.azul, shape: BoxShape.circle)), 'Tú'),
       ]),
     );
@@ -561,7 +547,7 @@ class _MapaPantallaState extends State<MapaPantalla> {
       if (cercanas.isEmpty)
         Padding(
           padding: const EdgeInsets.all(20),
-          child: Text('No hay paradas de las rutas encendidas a menos de 900 m. Prende otra ruta o mueve el punto azul.',
+          child: Text('No hay paradas de la Ruta 1 a menos de 3 km. Mantén presionado el mapa cerca de la Av. Lázaro Cárdenas.',
               style: Tema.subtitulo),
         ),
       for (final x in cercanas) _filaCerca(x, ahora),
