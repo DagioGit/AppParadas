@@ -58,4 +58,25 @@ void main() {
       }
     }
   });
+
+  test('La Ruta 1 pasa dos veces por el semáforo del hospital y una por el del entronque', () {
+    final r = rutaPorId('R1');
+    expect(r.semaforosEnRuta.length, 2);
+    final hospital = r.pausas.where((p) => p.semaforo != null && p.semaforo!.nombre.contains('Hospital')).length;
+    expect(hospital, 2);
+    expect(r.pausas.where((p) => p.semaforo != null).length, greaterThanOrEqualTo(3));
+  });
+
+  test('Las combis avanzan sobre el recorrido y hay combis en servicio a las 14:00', () {
+    final r = rutaPorId('R1');
+    var antes = -1.0;
+    for (var e = 0.0; e <= r.duracion; e += 7) {
+      final m = r.metrosA(e);
+      expect(m, greaterThanOrEqualTo(antes));
+      antes = m;
+    }
+    expect(r.metrosA(r.duracion), closeTo(r.trazo.largo, 0.5));
+    expect(r.combisEn(14 * 3600).length, greaterThan(0));
+    expect(r.combisEn(3 * 3600), isEmpty);
+  });
 }

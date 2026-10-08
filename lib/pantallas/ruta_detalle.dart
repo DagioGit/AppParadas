@@ -62,7 +62,9 @@ class _RutaDetalleState extends State<RutaDetalle> {
               PolylineLayer(polylines: [lineaRuta(r.trazo.puntos, r.color, ancho: 5.5)]),
               MarkerLayer(markers: [
                 for (final p in paradas) marcadorParada(p, tam: 15, onTap: () => mostrarParada(context, p)),
+                for (final sem in r.semaforosEnRuta) marcadorSemaforo(sem, alto: 22, onTap: () => mostrarSemaforo(context, sem)),
               ]),
+              capaCombis([r], onTap: (c) => mostrarCombi(context, c)),
               creditosMapa(),
             ],
           ),

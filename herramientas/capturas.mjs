@@ -30,6 +30,8 @@ const tomas = [
   ["2-viaje", "?tab=viaje&desde=gomez%20sada&hasta=av%20lazaro%20cardenas"],
   ["3-rutas", "?tab=rutas"],
   ["4-viaje-tec-malecon", "?tab=viaje&desde=instituto%20tecnologico&hasta=malecon%20de%20la%20cultura"],
+  ["5-opcion", "?desde=gomez%20sada&hasta=av%20lazaro%20cardenas&detalle=1"],
+  ["8-paradas", "?tab=paradas"],
 ];
 for (const [nombre, q] of tomas) {
   await pagina.goto("http://localhost:8099" + BASE + q, { waitUntil: "load" });
@@ -38,12 +40,13 @@ for (const [nombre, q] of tomas) {
   console.log("captura", nombre);
 }
 
-// Detalle de la opción más rápida: tocar la primera tarjeta del viaje
-await pagina.goto("http://localhost:8099" + BASE + tomas[1][1], { waitUntil: "load" });
-await pagina.waitForTimeout(10000);
-await pagina.mouse.click(195, 380);
-await pagina.waitForTimeout(5000);
-await pagina.screenshot({ path: path.join(salida, "5-opcion.png") });
+// Lista de paradas (más abajo en la pestaña Paradas)
+await pagina.goto("http://localhost:8099" + BASE + "?tab=paradas", { waitUntil: "load" });
+await pagina.waitForTimeout(9000);
+await pagina.mouse.move(195, 700);
+await pagina.mouse.wheel(0, 520);
+await pagina.waitForTimeout(2000);
+await pagina.screenshot({ path: path.join(salida, "9-paradas-lista.png") });
 
 // Hoja de una parada: abrir Rutas → Ruta 1 y tocar la primera parada de la lista
 await pagina.goto("http://localhost:8099" + BASE + "?tab=rutas", { waitUntil: "load" });

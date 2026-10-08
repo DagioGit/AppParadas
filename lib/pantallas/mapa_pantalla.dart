@@ -3,6 +3,7 @@ import 'package:flutter/material.dart' show Icons;
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
+import '../datos/semaforos.dart';
 import '../estado.dart';
 import '../modelo/ruta.dart';
 import '../modelo/ubicacion.dart';
@@ -63,8 +64,10 @@ class _MapaPantallaState extends State<MapaPantalla> {
               for (final r in visibles)
                 for (final p in r.paradas)
                   if (p.principal) marcadorParada(p, tam: r.simulada ? 13 : 17, onTap: () => mostrarParada(context, p)),
-              if (_yo != null) marcadorUbicacion(_yo!),
+              for (final sem in semaforos) marcadorSemaforo(sem, onTap: () => mostrarSemaforo(context, sem)),
             ]),
+            capaCombis(visibles, onTap: (c) => mostrarCombi(context, c)),
+            if (_yo != null) MarkerLayer(markers: [marcadorUbicacion(_yo!)]),
             creditosMapa(),
           ],
         ),

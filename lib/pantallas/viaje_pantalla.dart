@@ -8,6 +8,7 @@ import '../modelo/ruta.dart';
 import '../modelo/ubicacion.dart';
 import '../tema.dart';
 import '../widgets/comunes.dart';
+import '../widgets/mapa_viaje.dart';
 import 'buscar_lugar.dart';
 import 'opcion_detalle.dart';
 
@@ -37,7 +38,16 @@ class _ViajePantallaState extends State<ViajePantalla> {
     hastaInicial = null;
     if (_desde == null) _ubicacionInicial();
     if (_desde != null && _hasta != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _calcular());
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _calcular();
+        final ops = _opciones;
+        if (detalleInicial && ops != null && ops.isNotEmpty) {
+          detalleInicial = false;
+          Navigator.of(context).push(CupertinoPageRoute<void>(
+            builder: (_) => OpcionDetalle(opcion: ops.first, origen: _desde!, destino: _hasta!),
+          ));
+        }
+      });
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (destinoPedido.value != null) _alPedirDestino();
@@ -218,9 +228,18 @@ class _ViajePantallaState extends State<ViajePantalla> {
         ),
       ];
     }
+    void abrir(Opcion o) => Navigator.of(context).push(CupertinoPageRoute<void>(
+          title: 'Viaje',
+          builder: (_) => OpcionDetalle(opcion: o, origen: _desde!, destino: _hasta!),
+        ));
     return [
+      MapaViaje(opciones: ops, origen: _desde!, destino: _hasta!, onTapOpcion: abrir),
       Padding(
-        padding: const EdgeInsets.fromLTRB(32, 18, 20, 6),
+        padding: const EdgeInsets.fromLTRB(32, 2, 32, 0),
+        child: Text('Toca un recorrido en el mapa para ver los detalles.', style: Tema.chico),
+      ),
+      Padding(
+        padding: const EdgeInsets.fromLTRB(32, 14, 20, 6),
         child: Row(children: [
           Expanded(child: Text('${ops.length} OPCIONES · SALIENDO A LAS ${hora(_calculadoA)}', style: Tema.etiqueta)),
           CupertinoButton(
@@ -232,13 +251,7 @@ class _ViajePantallaState extends State<ViajePantalla> {
         ]),
       ),
       for (final o in ops)
-        TarjetaOpcion(
-          opcion: o,
-          onTap: () => Navigator.of(context).push(CupertinoPageRoute<void>(
-            title: 'Viaje',
-            builder: (_) => OpcionDetalle(opcion: o, origen: _desde!, destino: _hasta!),
-          )),
-        ),
+        TarjetaOpcion(opcion: o, onTap: () => abrir(o)),
       Padding(
         padding: const EdgeInsets.fromLTRB(32, 6, 32, 0),
         child: Text(
@@ -265,7 +278,7 @@ class TarjetaOpcion extends StatelessWidget {
       resumen = 'Caminando ${(o.metrosAPie / 1000).toStringAsFixed(1)} km';
     } else {
       final partes = <String>[
-        'Sale ${hora(primera!.inicio)} de ${primera.desdeNombre}',
+        'Sube en ${primera!.desdeNombre}',
         if (o.transbordos > 0) '${o.transbordos} transbordo',
         '${duracion(o.aPie)} a pie',
       ];
@@ -303,7 +316,23 @@ class TarjetaOpcion extends StatelessWidget {
         ]),
         const SizedBox(height: 10),
         SecuenciaTramos(opcion: o),
-        const SizedBox(height: 10),
+        if (primera != null) ...[
+          const SizedBox(height: 10),
+          ConReloj(
+            cada: const Duration(seconds: 1),
+            builder: (context, ahora) => Row(children: [
+              Icon(Icons.directions_bus_rounded, size: 17, color: primera.ruta!.color),
+              const SizedBox(width: 5),
+              Expanded(
+                child: Text(
+                  'La ${primera.ruta!.nombre} pasa ${faltaTexto(primera.inicio, ahora)} · ${hora(primera.inicio)}',
+                  style: Tema.texto(size: 14, weight: FontWeight.w600),
+                ),
+              ),
+            ]),
+          ),
+        ],
+        const SizedBox(height: 6),
         Text(resumen, style: Tema.chico),
       ]),
     );

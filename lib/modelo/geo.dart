@@ -44,6 +44,39 @@ class Trazo {
     return puntos.last;
   }
 
+  /// Distancias (desde el inicio) de cada vez que el recorrido pasa a menos de [radio] metros de [q].
+  /// Una ruta de ida y vuelta por la misma avenida pasa dos veces por el mismo semáforo.
+  List<double> pasos(LatLng q, {double radio = 35}) {
+    final cerca = <List<double>>[]; // [s, distancia]
+    final c = math.cos(q.latitude * _rad);
+    for (var i = 0; i < puntos.length - 1; i++) {
+      final a = puntos[i], b = puntos[i + 1];
+      final ax = a.longitude * c, ay = a.latitude, bx = b.longitude * c, by = b.latitude;
+      final dx = bx - ax, dy = by - ay;
+      final l2 = dx * dx + dy * dy;
+      var u = l2 == 0 ? 0.0 : ((q.longitude * c - ax) * dx + (q.latitude - ay) * dy) / l2;
+      u = u.clamp(0.0, 1.0).toDouble();
+      final p = LatLng(a.latitude + (b.latitude - a.latitude) * u, a.longitude + (b.longitude - a.longitude) * u);
+      final d = distanciaM(p, q);
+      if (d <= radio) cerca.add([acumulado[i] + (acumulado[i + 1] - acumulado[i]) * u, d]);
+    }
+    cerca.sort((x, y) => x[0].compareTo(y[0]));
+    final r = <double>[];
+    double? ultimo;
+    double mejorD = double.infinity;
+    for (final x in cerca) {
+      if (ultimo == null || x[0] - ultimo > 80) {
+        r.add(x[0]);
+        mejorD = x[1];
+      } else if (x[1] < mejorD) {
+        r[r.length - 1] = x[0];
+        mejorD = x[1];
+      }
+      ultimo = x[0];
+    }
+    return r;
+  }
+
   /// Puntos entre s0 y s1 avanzando en el sentido del recorrido (da la vuelta si s1 < s0).
   List<LatLng> tramo(double s0, double s1) {
     if (s1 < s0) {

@@ -7,6 +7,7 @@ import 'datos/lugares.dart';
 import 'estado.dart';
 import 'pantallas/buscar_lugar.dart';
 import 'pantallas/mapa_pantalla.dart';
+import 'pantallas/paradas_pantalla.dart';
 import 'pantallas/rutas_pantalla.dart';
 import 'pantallas/viaje_pantalla.dart';
 import 'tema.dart';
@@ -52,9 +53,11 @@ void leerEnlace() {
 
   desdeInicial = buscar(q['desde']);
   hastaInicial = buscar(q['hasta']);
+  detalleInicial = q['detalle'] == '1';
   final tab = q['tab'];
   if (tab == 'viaje' || hastaInicial != null) pestanas.index = 1;
-  if (tab == 'rutas') pestanas.index = 2;
+  if (tab == 'paradas') pestanas.index = 2;
+  if (tab == 'rutas') pestanas.index = 3;
 }
 
 class Inicio extends StatefulWidget {
@@ -81,6 +84,7 @@ class _InicioState extends State<Inicio> {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.map_rounded), label: 'Mapa'),
           BottomNavigationBarItem(icon: Icon(Icons.near_me_rounded), label: 'Viaje'),
+          BottomNavigationBarItem(icon: Icon(Icons.place_rounded), label: 'Paradas'),
           BottomNavigationBarItem(icon: Icon(Icons.directions_bus_rounded), label: 'Rutas'),
         ],
       ),
@@ -91,6 +95,8 @@ class _InicioState extends State<Inicio> {
               return const MapaPantalla();
             case 1:
               return const ViajePantalla();
+            case 2:
+              return const ParadasPantalla();
             default:
               return const RutasPantalla();
           }

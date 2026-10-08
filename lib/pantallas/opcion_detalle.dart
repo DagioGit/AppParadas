@@ -1,13 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' show Icons;
-import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
 
 import '../datos/lugares.dart';
 import '../modelo/planificador.dart';
 import '../modelo/ruta.dart';
 import '../tema.dart';
 import '../widgets/comunes.dart';
+import '../widgets/mapa_viaje.dart';
 import 'viaje_pantalla.dart';
 
 class OpcionDetalle extends StatelessWidget {
@@ -19,41 +18,17 @@ class OpcionDetalle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final o = opcion;
-    final todos = <LatLng>[for (final t in o.tramos) ...t.puntos];
 
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(middle: Text(duracion(o.total))),
       child: ListView(children: [
-        Container(
-          height: 320,
-          margin: const EdgeInsets.fromLTRB(16, 12, 16, 6),
-          clipBehavior: Clip.antiAlias,
-          decoration: BoxDecoration(borderRadius: BorderRadius.circular(18)),
-          child: FlutterMap(
-            options: MapOptions(
-              initialCameraFit: CameraFit.bounds(
-                bounds: LatLngBounds.fromPoints(todos),
-                padding: const EdgeInsets.all(36),
-              ),
-              interactionOptions: const InteractionOptions(flags: InteractiveFlag.all & ~InteractiveFlag.rotate),
-            ),
-            children: [
-              capaTeselas(),
-              PolylineLayer(polylines: [
-                for (final t in o.tramos)
-                  if (t.tipo == TipoTramo.pie) lineaPie(t.puntos) else lineaRuta(t.puntos, t.ruta!.color, ancho: 6),
-              ]),
-              MarkerLayer(markers: [
-                for (final t in o.enCombi) ...[
-                  marcadorParada(t.sube!, tam: 16),
-                  marcadorParada(t.baja!, tam: 16),
-                ],
-                marcadorPunto(origen.punto, color: Tema.azul, icono: Icons.circle, tam: 22),
-                marcadorPunto(destino.punto, color: const Color(0xFFFF3B30), icono: Icons.flag_rounded, tam: 32),
-              ]),
-              creditosMapa(),
-            ],
-          ),
+        MapaViaje(
+          opciones: [o],
+          origen: origen,
+          destino: destino,
+          resaltada: o,
+          alto: 340,
+          onTapOpcion: (_) {},
         ),
         Tarjeta(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -73,6 +48,33 @@ class OpcionDetalle extends StatelessWidget {
             ]),
             const SizedBox(height: 12),
             SecuenciaTramos(opcion: o),
+            if (o.enCombi.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              ConReloj(
+                cada: const Duration(seconds: 1),
+                builder: (context, ahora) {
+                  final t = o.enCombi.first;
+                  final falta = t.inicio - ahora;
+                  return Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(color: Tema.fondo, borderRadius: BorderRadius.circular(12)),
+                    child: Row(children: [
+                      InsigniaRuta(t.ruta!, tam: 34),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          Text('Tu combi pasa por ${t.sube!.nombre}', style: Tema.chico),
+                          Text(
+                            falta < 45 ? 'Llegando' : falta < 3600 ? 'En ${(falta / 60).floor()} min ${(falta % 60).floor().toString().padLeft(2, '0')} s' : 'A las ${hora(t.inicio)}',
+                            style: Tema.texto(size: 22, weight: FontWeight.w800),
+                          ),
+                        ]),
+                      ),
+                    ]),
+                  );
+                },
+              ),
+            ],
           ]),
         ),
         const Encabezado('Paso a paso'),

@@ -1,8 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' show Icons;
+import 'package:flutter/scheduler.dart' show Ticker;
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
+import '../datos/semaforos.dart';
 import '../modelo/ruta.dart';
 import '../tema.dart';
 
@@ -208,4 +210,182 @@ class BotonFlotante extends StatelessWidget {
       ),
     );
   }
+}
+
+// ---------------- Combis animadas y semáforos ----------------
+
+/// Reconstruye [builder] varias veces por segundo con la hora actual (segundos del día).
+/// Usa un Ticker, así que se pausa sola cuando la pestaña no está visible.
+class ConReloj extends StatefulWidget {
+  final Widget Function(BuildContext context, double ahora) builder;
+  final Duration cada;
+  const ConReloj({super.key, required this.builder, this.cada = const Duration(milliseconds: 400)});
+
+  @override
+  State<ConReloj> createState() => _ConRelojState();
+}
+
+class _ConRelojState extends State<ConReloj> with SingleTickerProviderStateMixin {
+  late final Ticker _ticker;
+  Duration _ultimo = Duration.zero;
+
+  @override
+  void initState() {
+    super.initState();
+    _ticker = createTicker((transcurrido) {
+      if (transcurrido - _ultimo >= widget.cada) {
+        _ultimo = transcurrido;
+        setState(() {});
+      }
+    })
+      ..start();
+  }
+
+  @override
+  void dispose() {
+    _ticker.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.builder(context, segundosAhora());
+}
+
+/// Icono de una combi en el mapa, con el número de su ruta.
+Widget iconoCombi(Ruta r, {double tam = 26, bool resaltada = false}) {
+  final claro = r.color.computeLuminance() > 0.5;
+  return Container(
+    width: tam,
+    height: tam,
+    decoration: BoxDecoration(
+      color: r.color,
+      borderRadius: BorderRadius.circular(tam * 0.32),
+      border: Border.all(color: const Color(0xFFFFFFFF), width: resaltada ? 3 : 2),
+      boxShadow: [
+        BoxShadow(color: resaltada ? r.color.withOpacity(0.6) : const Color(0x55000000), blurRadius: resaltada ? 10 : 4, spreadRadius: resaltada ? 2 : 0),
+      ],
+    ),
+    child: Icon(Icons.directions_bus_rounded, size: tam * 0.62, color: claro ? Tema.tinta : const Color(0xFFFFFFFF)),
+  );
+}
+
+Marker marcadorCombi(CombiEnRuta c, {VoidCallback? onTap, double tam = 26}) => Marker(
+      point: c.punto,
+      width: tam + 6,
+      height: tam + 6,
+      child: GestureDetector(onTap: onTap, child: Center(child: iconoCombi(c.ruta, tam: tam))),
+    );
+
+/// Combis de varias rutas moviéndose sobre el mapa según su horario.
+Widget capaCombis(Iterable<Ruta> rs, {void Function(CombiEnRuta)? onTap, double tam = 24}) {
+  return ConReloj(builder: (context, ahora) {
+    return MarkerLayer(markers: [
+      for (final r in rs)
+        for (final c in r.combisEn(ahora)) marcadorCombi(c, tam: tam, onTap: onTap == null ? null : () => onTap(c)),
+    ]);
+  });
+}
+
+/// Semáforo pequeño (caja negra con luz roja, amarilla y verde).
+Widget iconoSemaforo({double alto = 30}) {
+  Widget luz(Color c) => Container(
+        width: alto * 0.22,
+        height: alto * 0.22,
+        decoration: BoxDecoration(color: c, shape: BoxShape.circle),
+      );
+  return Container(
+    width: alto * 0.42,
+    height: alto,
+    padding: EdgeInsets.symmetric(vertical: alto * 0.07),
+    decoration: BoxDecoration(
+      color: const Color(0xFF1C1C1E),
+      borderRadius: BorderRadius.circular(alto * 0.14),
+      border: Border.all(color: const Color(0xFFFFFFFF), width: 1.5),
+      boxShadow: const [BoxShadow(color: Color(0x55000000), blurRadius: 4, offset: Offset(0, 1))],
+    ),
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [luz(const Color(0xFFFF453A)), luz(const Color(0xFFFFD60A)), luz(const Color(0xFF30D158))],
+    ),
+  );
+}
+
+Marker marcadorSemaforo(Semaforo s, {VoidCallback? onTap, double alto = 28}) => Marker(
+      point: s.punto,
+      width: alto,
+      height: alto + 4,
+      child: GestureDetector(onTap: onTap, child: Center(child: iconoSemaforo(alto: alto))),
+    );
+
+/// Etiqueta tipo globo sobre el mapa ("Pasa aquí · 7 min", "Bájate aquí").
+Marker marcadorEtiqueta(LatLng p, String texto, {Color color = Tema.tinta, Color letra = const Color(0xFFFFFFFF), VoidCallback? onTap, double ancho = 150}) => Marker(
+      point: p,
+      width: ancho,
+      height: 64,
+      alignment: Alignment.topCenter,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Column(mainAxisAlignment: MainAxisAlignment.end, children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(10),
+              boxShadow: const [BoxShadow(color: Color(0x40000000), blurRadius: 6, offset: Offset(0, 2))],
+            ),
+            child: Text(texto, maxLines: 1, overflow: TextOverflow.ellipsis, style: Tema.texto(size: 12.5, weight: FontWeight.w700, color: letra)),
+          ),
+          CustomPaint(size: const Size(12, 7), painter: _Pico(color)),
+        ]),
+      ),
+    );
+
+class _Pico extends CustomPainter {
+  final Color color;
+  _Pico(this.color);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final path = Path()
+      ..moveTo(0, 0)
+      ..lineTo(size.width, 0)
+      ..lineTo(size.width / 2, size.height)
+      ..close();
+    canvas.drawPath(path, Paint()..color = color);
+  }
+
+  @override
+  bool shouldRepaint(_Pico old) => old.color != color;
+}
+
+/// Hoja pequeña con información de un semáforo.
+Future<void> mostrarSemaforo(BuildContext context, Semaforo s) {
+  return showCupertinoModalPopup<void>(
+    context: context,
+    builder: (ctx) => CupertinoActionSheet(
+      title: Text(s.nombre, style: Tema.texto(size: 15, weight: FontWeight.w700)),
+      message: Text('${s.detalle}.\nEn el horario simulado la combi se detiene en promedio ${esperaSemaforo.round()} s aquí.', style: Tema.texto(size: 13, color: Tema.gris)),
+      cancelButton: CupertinoActionSheetAction(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cerrar')),
+    ),
+  );
+}
+
+/// Hoja pequeña con información de una combi en movimiento.
+Future<void> mostrarCombi(BuildContext context, CombiEnRuta c) {
+  final r = c.ruta;
+  final sig = c.siguiente;
+  final ahora = segundosAhora();
+  final llega = sig == null ? null : sig.desfase - (ahora - c.salida);
+  return showCupertinoModalPopup<void>(
+    context: context,
+    builder: (ctx) => CupertinoActionSheet(
+      title: Text('${r.nombre} · ${r.apodo}', style: Tema.texto(size: 15, weight: FontWeight.w700)),
+      message: Text(
+        'Salió a las ${hora(c.salida)}.'
+        '${sig != null && llega != null ? '\nSiguiente parada: ${sig.nombre} (${llega < 45 ? 'llegando' : 'en ${(llega / 60).ceil()} min'}).' : ''}',
+        style: Tema.texto(size: 13, color: Tema.gris),
+      ),
+      cancelButton: CupertinoActionSheetAction(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cerrar')),
+    ),
+  );
 }
