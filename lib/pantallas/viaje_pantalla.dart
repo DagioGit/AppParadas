@@ -9,6 +9,7 @@ import '../modelo/ubicacion.dart';
 import '../tema.dart';
 import '../widgets/comunes.dart';
 import '../widgets/mapa_viaje.dart';
+import '../widgets/mapa_viaje_3d.dart';
 import 'buscar_lugar.dart';
 import 'opcion_detalle.dart';
 
@@ -26,6 +27,8 @@ class _ViajePantallaState extends State<ViajePantalla> {
   List<Opcion>? _opciones;
   double _calculadoA = 0;
   String? _avisoUbicacion;
+  int _sel = 0;
+  final _hoja = DraggableScrollableController();
 
   @override
   void initState() {
@@ -58,6 +61,7 @@ class _ViajePantallaState extends State<ViajePantalla> {
   @override
   void dispose() {
     destinoPedido.removeListener(_alPedirDestino);
+    _hoja.dispose();
     pedirBusqueda.removeListener(_alPedirBusqueda);
     super.dispose();
   }
@@ -128,11 +132,19 @@ class _ViajePantallaState extends State<ViajePantalla> {
     setState(() {
       _opciones = ops;
       _calculadoA = ahora;
+      _sel = 0;
     });
   }
 
+  void _abrir(Opcion o) => Navigator.of(context).push(CupertinoPageRoute<void>(
+        title: 'Viaje',
+        builder: (_) => OpcionDetalle(opcion: o, origen: _desde!, destino: _hasta!),
+      ));
+
   @override
   Widget build(BuildContext context) {
+    final ops = _opciones;
+    if (ops != null && ops.isNotEmpty && _desde != null && _hasta != null) return _conMapa(ops);
     return CupertinoPageScaffold(
       child: CustomScrollView(slivers: [
         const CupertinoSliverNavigationBar(largeTitle: Text('Viaje')),
@@ -147,6 +159,63 @@ class _ViajePantallaState extends State<ViajePantalla> {
             ..._resultados(),
             SizedBox(height: MediaQuery.of(context).padding.bottom + 24),
           ]),
+        ),
+      ]),
+    );
+  }
+
+  /// Con opciones: mapa 3D a pantalla completa, el formulario arriba y las opciones en un panel que se arrastra.
+  Widget _conMapa(List<Opcion> ops) {
+    final arriba = MediaQuery.of(context).padding.top;
+    return CupertinoPageScaffold(
+      child: Stack(children: [
+        Positioned.fill(
+          child: MapaViaje3D(
+            opciones: ops,
+            seleccion: _sel,
+            origen: _desde!,
+            destino: _hasta!,
+            onElegir: (i) => setState(() => _sel = i),
+            onDetalle: _abrir,
+          ),
+        ),
+        Positioned(left: 0, right: 0, top: arriba + 4, child: _formulario()),
+        Positioned.fill(
+          child: HojaDeslizable(
+            controlador: _hoja,
+            inicial: 0.4,
+            hijos: (ahora) => [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 12, 4),
+                child: Row(children: [
+                  Expanded(
+                    child: Text('${ops.length} formas de llegar', style: Tema.texto(size: 20, weight: FontWeight.w800)),
+                  ),
+                  CupertinoButton(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    minimumSize: const Size(30, 30),
+                    onPressed: _calcular,
+                    child: Text('Actualizar', style: Tema.texto(size: 14, weight: FontWeight.w600, color: Tema.azul)),
+                  ),
+                ]),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 6),
+                child: Text('Las combis avanzan en vivo en el mapa; la ruta que ya recorrieron se borra. '
+                    'Toca una opción para verla y tócala otra vez para el paso a paso.', style: Tema.chico),
+              ),
+              for (var i = 0; i < ops.length; i++)
+                TarjetaOpcion(
+                  opcion: ops[i],
+                  elegida: i == _sel,
+                  onTap: () => i == _sel ? _abrir(ops[i]) : setState(() => _sel = i),
+                ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(32, 6, 32, 0),
+                child: Text('Tiempos estimados con el horario de cada ruta. Las rutas 3, 4 y 5 son simuladas.', style: Tema.chico),
+              ),
+            ],
+          ),
         ),
       ]),
     );
@@ -267,7 +336,8 @@ class _ViajePantallaState extends State<ViajePantalla> {
 class TarjetaOpcion extends StatelessWidget {
   final Opcion opcion;
   final VoidCallback onTap;
-  const TarjetaOpcion({super.key, required this.opcion, required this.onTap});
+  final bool elegida;
+  const TarjetaOpcion({super.key, required this.opcion, required this.onTap, this.elegida = false});
 
   @override
   Widget build(BuildContext context) {
@@ -289,6 +359,7 @@ class TarjetaOpcion extends StatelessWidget {
       onTap: onTap,
       padding: const EdgeInsets.all(16),
       color: o.masRapida ? const Color(0xFFFFFFFF) : Tema.tarjeta,
+      borde: elegida ? Tema.tinta : null,
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         if (o.masRapida)
           Container(

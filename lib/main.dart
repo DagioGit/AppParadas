@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' show Icons;
+import 'package:flutter/gestures.dart' show PointerDeviceKind;
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
@@ -26,6 +27,7 @@ class AppParadas extends StatelessWidget {
     return CupertinoApp(
       title: 'AppParadas',
       debugShowCheckedModeBanner: false,
+      scrollBehavior: const _ArrastreConMouse(),
       theme: Tema.cupertino,
       locale: const Locale('es', 'MX'),
       supportedLocales: const [Locale('es', 'MX'), Locale('es')],
@@ -105,4 +107,17 @@ class _InicioState extends State<Inicio> {
       },
     );
   }
+}
+
+/// En la computadora también se puede arrastrar con el mouse o el trackpad (listas y paneles).
+class _ArrastreConMouse extends CupertinoScrollBehavior {
+  const _ArrastreConMouse();
+
+  @override
+  Set<PointerDeviceKind> get dragDevices => const {
+        PointerDeviceKind.touch,
+        PointerDeviceKind.mouse,
+        PointerDeviceKind.trackpad,
+        PointerDeviceKind.stylus,
+      };
 }

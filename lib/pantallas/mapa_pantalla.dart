@@ -20,6 +20,7 @@ import '../modelo/ubicacion.dart';
 import '../tema.dart';
 import '../widgets/comunes.dart';
 import '../widgets/escena3d.dart';
+import '../widgets/mapa3d_base.dart';
 import '../widgets/hoja_parada.dart';
 import '../widgets/mapa_viaje.dart' show faltaTexto;
 import 'buscar_lugar.dart';
@@ -51,6 +52,7 @@ class _MapaPantallaState extends State<MapaPantalla> {
   Timer? _reloj;
 
   final Set<String> _visibles = {'R1', 'R2'};
+  final _hoja = DraggableScrollableController();
   LatLng _yo = origenDemo;
   bool _yoReal = false;
   String? _aviso;
@@ -80,6 +82,7 @@ class _MapaPantallaState extends State<MapaPantalla> {
   @override
   void dispose() {
     _reloj?.cancel();
+    _hoja.dispose();
     super.dispose();
   }
 
@@ -119,107 +122,7 @@ class _MapaPantallaState extends State<MapaPantalla> {
   Future<void> _alCargarEstilo() async {
     final c = _c;
     if (c == null) return;
-    try {
-      // Edificios en 3D con la altura de OpenStreetMap
-      await c.addFillExtrusionLayer(
-        'openmaptiles',
-        'edificios-3d',
-        ml.FillExtrusionLayerProperties(
-          fillExtrusionColor: '#e3e3e8',
-          fillExtrusionHeight: ['coalesce', ['get', 'render_height'], 6],
-          fillExtrusionBase: ['coalesce', ['get', 'render_min_height'], 0],
-          fillExtrusionOpacity: 0.85,
-        ),
-        sourceLayer: 'building',
-        minzoom: 14,
-        enableInteraction: false,
-      );
-    } catch (_) {
-      // Si el estilo no trae edificios, el mapa sigue funcionando sin ellos.
-    }
-    await c.addGeoJsonSource('rutas', coleccion([]));
-    await c.addGeoJsonSource('viaje', coleccion([]));
-    await c.addGeoJsonSource('casetas', coleccion([]));
-    await c.addGeoJsonSource('semaforos', geoSemaforos());
-    await c.addGeoJsonSource('combis', coleccion([]));
-    await c.addGeoJsonSource('combis-puntos', coleccion([]));
-    await c.addGeoJsonSource('paradas-puntos', coleccion([]));
-    await c.addGeoJsonSource('pines', coleccion([]));
-    await c.addGeoJsonSource('etiquetas', coleccion([]));
-
-    await c.addLineLayer(
-      'rutas',
-      'rutas-borde',
-      ml.LineLayerProperties(lineColor: '#ffffff', lineWidth: ['+', ['get', 'ancho'], 3], lineOpacity: ['get', 'opacidad'], lineJoin: 'round', lineCap: 'round'),
-    );
-    await c.addLineLayer(
-      'rutas',
-      'rutas-linea',
-      ml.LineLayerProperties(lineColor: ['get', 'color'], lineWidth: ['get', 'ancho'], lineOpacity: ['get', 'opacidad'], lineJoin: 'round', lineCap: 'round'),
-    );
-    await c.addLineLayer(
-      'viaje',
-      'viaje-borde',
-      ml.LineLayerProperties(lineColor: '#ffffff', lineWidth: ['+', ['get', 'ancho'], 4], lineJoin: 'round', lineCap: 'round'),
-    );
-    await c.addLineLayer(
-      'viaje',
-      'viaje-linea',
-      ml.LineLayerProperties(lineColor: ['get', 'color'], lineWidth: ['get', 'ancho'], lineJoin: 'round', lineCap: 'round'),
-    );
-    final extrusion = ml.FillExtrusionLayerProperties(
-      fillExtrusionColor: ['get', 'color'],
-      fillExtrusionHeight: ['get', 'altura'],
-      fillExtrusionBase: ['get', 'base'],
-      fillExtrusionOpacity: 1.0,
-    );
-    await c.addFillExtrusionLayer('casetas', 'casetas-3d', extrusion);
-    await c.addFillExtrusionLayer('semaforos', 'semaforos-3d', extrusion);
-    await c.addFillExtrusionLayer('combis', 'combis-3d', extrusion);
-    await c.addFillExtrusionLayer('pines', 'pines-3d', extrusion);
-    await c.addCircleLayer(
-      'paradas-puntos',
-      'paradas-punto',
-      ml.CircleLayerProperties(circleRadius: 5, circleColor: '#ffffff', circleStrokeColor: ['get', 'color'], circleStrokeWidth: 3),
-      maxzoom: 15.6,
-    );
-    await c.addCircleLayer(
-      'combis-puntos',
-      'combis-punto',
-      ml.CircleLayerProperties(circleRadius: ['get', 'radio'], circleColor: ['get', 'color'], circleStrokeColor: '#ffffff', circleStrokeWidth: 2.5),
-      maxzoom: 16.2,
-    );
-    await c.addSymbolLayer(
-      'combis-puntos',
-      'combis-numero',
-      ml.SymbolLayerProperties(
-        textField: ['get', 'texto'],
-        textFont: ['Noto Sans Bold'],
-        textSize: 11,
-        textColor: ['get', 'letra'],
-        textAllowOverlap: true,
-        textIgnorePlacement: true,
-      ),
-      maxzoom: 16.2,
-    );
-    await c.addSymbolLayer(
-      'etiquetas',
-      'etiquetas-texto',
-      ml.SymbolLayerProperties(
-        textField: ['get', 'texto'],
-        textFont: ['Noto Sans Bold'],
-        textSize: 14,
-        textColor: ['get', 'color'],
-        textHaloColor: '#ffffff',
-        textHaloWidth: 2.5,
-        textAnchor: 'bottom',
-        textOffset: [0, -1.6],
-        textAllowOverlap: false,
-        textIgnorePlacement: false,
-        symbolSortKey: ['get', 'prioridad'],
-        textMaxWidth: 14,
-      ),
-    );
+    await prepararEscena(c);
     _listo = true;
     final inicial = destinoMapaInicial;
     if (inicial != null) {
@@ -248,6 +151,7 @@ class _MapaPantallaState extends State<MapaPantalla> {
     };
     await c.setGeoJsonSource('rutas', geoRutas(_rutasVisibles, tenues: o != null));
     await c.setGeoJsonSource('viaje', geoViaje(o));
+    await c.setGeoJsonSource('pie', geoPie(o));
     await c.setGeoJsonSource('casetas', geoCasetas(_rutasVisibles, resaltadas: resaltadas));
     await c.setGeoJsonSource('paradas-puntos', geoParadasPuntos(_rutasVisibles));
     await c.setGeoJsonSource('pines', geoPines(_yo, _destino?.punto));
@@ -307,7 +211,6 @@ class _MapaPantallaState extends State<MapaPantalla> {
     if (_ocupado) return;
     _ocupado = true;
     _dibujarVivo().whenComplete(() => _ocupado = false);
-    setState(() {}); // cuentas regresivas del panel
   }
 
   Future<void> _camara(LatLng centro, {double zoom = 16.7, double? tilt}) async {
@@ -472,8 +375,6 @@ class _MapaPantallaState extends State<MapaPantalla> {
   @override
   Widget build(BuildContext context) {
     final arriba = MediaQuery.of(context).padding.top;
-    final abajo = MediaQuery.of(context).padding.bottom;
-    const altoPanel = 290.0;
 
     return CupertinoPageScaffold(
       child: Stack(children: [
@@ -536,7 +437,7 @@ class _MapaPantallaState extends State<MapaPantalla> {
         // Botones
         Positioned(
           right: 16,
-          bottom: abajo + altoPanel + 14,
+          top: arriba + 124,
           child: Column(children: [
             _BotonTexto(texto: _tresD ? '2D' : '3D', onTap: _cambiarVista),
             const SizedBox(height: 10),
@@ -545,14 +446,14 @@ class _MapaPantallaState extends State<MapaPantalla> {
         ),
         Positioned(
           left: 16,
-          bottom: abajo + altoPanel + 14,
+          top: arriba + 124,
           child: IgnorePointer(child: _leyenda()),
         ),
         if (_aviso != null)
           Positioned(
             left: 16,
             right: 80,
-            bottom: abajo + altoPanel + 14,
+            top: arriba + 230,
             child: GestureDetector(
               onTap: () => setState(() => _aviso = null),
               child: Container(
@@ -563,20 +464,11 @@ class _MapaPantallaState extends State<MapaPantalla> {
               ),
             ),
           ),
-        // Panel inferior
-        Positioned(
-          left: 0,
-          right: 0,
-          bottom: 0,
-          height: altoPanel + abajo,
-          child: Container(
-            padding: EdgeInsets.only(bottom: abajo),
-            decoration: const BoxDecoration(
-              color: Tema.fondo,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
-              boxShadow: [BoxShadow(color: Color(0x26000000), blurRadius: 20, offset: Offset(0, -4))],
-            ),
-            child: _destino == null ? _panelCerca() : _panelViaje(),
+        // Panel inferior: se arrastra hacia abajo para ver más mapa y hacia arriba para ver todo
+        Positioned.fill(
+          child: HojaDeslizable(
+            controlador: _hoja,
+            hijos: (ahora) => _destino == null ? _panelCerca(ahora) : _panelViaje(ahora),
           ),
         ),
       ]),
@@ -651,23 +543,12 @@ class _MapaPantallaState extends State<MapaPantalla> {
     );
   }
 
-  Widget _asa() => Center(
-        child: Container(
-          margin: const EdgeInsets.only(top: 8, bottom: 4),
-          width: 38,
-          height: 5,
-          decoration: BoxDecoration(color: Tema.grisClaro, borderRadius: BorderRadius.circular(3)),
-        ),
-      );
-
   /// Sin destino: las combis que van a pasar por las paradas más cercanas a ti.
-  Widget _panelCerca() {
+  List<Widget> _panelCerca(double ahora) {
     final cercanas = _cercanas();
-    final ahora = segundosAhora();
-    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      _asa(),
+    return [
       Padding(
-        padding: const EdgeInsets.fromLTRB(20, 4, 20, 2),
+        padding: const EdgeInsets.fromLTRB(20, 2, 20, 2),
         child: Text('Combis cerca de ti', style: Tema.texto(size: 20, weight: FontWeight.w800)),
       ),
       Padding(
@@ -677,18 +558,14 @@ class _MapaPantallaState extends State<MapaPantalla> {
           style: Tema.chico,
         ),
       ),
-      Expanded(
-        child: cercanas.isEmpty
-            ? Padding(
-                padding: const EdgeInsets.all(20),
-                child: Text('No hay paradas de las rutas encendidas a menos de 900 m. Prende otra ruta o mueve el punto azul.',
-                    style: Tema.subtitulo),
-              )
-            : ListView(padding: const EdgeInsets.only(bottom: 8), children: [
-                for (final x in cercanas) _filaCerca(x, ahora),
-              ]),
-      ),
-    ]);
+      if (cercanas.isEmpty)
+        Padding(
+          padding: const EdgeInsets.all(20),
+          child: Text('No hay paradas de las rutas encendidas a menos de 900 m. Prende otra ruta o mueve el punto azul.',
+              style: Tema.subtitulo),
+        ),
+      for (final x in cercanas) _filaCerca(x, ahora),
+    ];
   }
 
   Widget _filaCerca(_Cercana x, double ahora) {
@@ -726,21 +603,15 @@ class _MapaPantallaState extends State<MapaPantalla> {
   }
 
   /// Con destino: las opciones de viaje; la elegida se dibuja en el mapa.
-  Widget _panelViaje() {
+  List<Widget> _panelViaje(double ahora) {
     final ops = _opciones ?? const <Opcion>[];
-    final ahora = segundosAhora();
-    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      _asa(),
+    return [
       Padding(
-        padding: const EdgeInsets.fromLTRB(20, 4, 20, 6),
+        padding: const EdgeInsets.fromLTRB(20, 2, 20, 6),
         child: Text(ops.isEmpty ? 'Sin combis para ese lugar' : '${ops.length} formas de llegar', style: Tema.texto(size: 20, weight: FontWeight.w800)),
       ),
-      Expanded(
-        child: ListView(padding: const EdgeInsets.only(bottom: 8), children: [
-          for (var i = 0; i < ops.length; i++) _tarjetaOpcion(ops[i], i, ahora),
-        ]),
-      ),
-    ]);
+      for (var i = 0; i < ops.length; i++) _tarjetaOpcion(ops[i], i, ahora),
+    ];
   }
 
   Widget _tarjetaOpcion(Opcion o, int i, double ahora) {

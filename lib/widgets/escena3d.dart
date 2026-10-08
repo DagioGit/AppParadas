@@ -178,11 +178,13 @@ Map<String, dynamic> geoPines(LatLng origen, LatLng? destino) => coleccion([
 
 Map<String, dynamic> geoViaje(Opcion? o) => coleccion([
       if (o != null)
+        for (final t in o.enCombi) linea(t.puntos, {'color': colorFuerte(t.ruta!), 'ancho': 10.0, 'tipo': 'viaje'}),
+    ]);
+
+Map<String, dynamic> geoPie(Opcion? o) => coleccion([
+      if (o != null)
         for (final t in o.tramos)
-          if (t.tipo == TipoTramo.pie)
-            linea(t.puntos, {'color': '#6e6e73', 'ancho': 4.0, 'tipo': 'viaje', 'pie': true})
-          else
-            linea(t.puntos, {'color': hexColor(t.ruta!.color), 'ancho': 10.0, 'tipo': 'viaje', 'pie': false}),
+          if (t.tipo == TipoTramo.pie && t.segundos >= 30) linea(t.puntos, {'tipo': 'pie'}),
     ]);
 
 /// Texto flotante sobre el mapa.

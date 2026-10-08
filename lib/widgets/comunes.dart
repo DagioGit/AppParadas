@@ -69,6 +69,7 @@ class Tarjeta extends StatelessWidget {
   final EdgeInsets margin;
   final VoidCallback? onTap;
   final Color color;
+  final Color? borde;
   const Tarjeta({
     super.key,
     required this.child,
@@ -76,6 +77,7 @@ class Tarjeta extends StatelessWidget {
     this.margin = const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
     this.onTap,
     this.color = Tema.tarjeta,
+    this.borde,
   });
 
   @override
@@ -83,7 +85,11 @@ class Tarjeta extends StatelessWidget {
     final caja = Container(
       margin: margin,
       padding: padding,
-      decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(16)),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(16),
+        border: borde == null ? null : Border.all(color: borde!, width: 2),
+      ),
       child: child,
     );
     if (onTap == null) return caja;
@@ -388,4 +394,72 @@ Future<void> mostrarCombi(BuildContext context, CombiEnRuta c) {
       cancelButton: CupertinoActionSheetAction(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cerrar')),
     ),
   );
+}
+
+/// Panel inferior que se arrastra: hacia abajo deja ver el mapa, hacia arriba muestra todo.
+/// Tocar la barrita de arriba lo encoge o lo vuelve a abrir. Se actualiza cada segundo.
+class HojaDeslizable extends StatelessWidget {
+  final DraggableScrollableController controlador;
+  final List<Widget> Function(double ahora) hijos;
+  final double inicial;
+  final double minimo;
+  final double maximo;
+  const HojaDeslizable({
+    super.key,
+    required this.controlador,
+    required this.hijos,
+    this.inicial = 0.38,
+    this.minimo = 0.17,
+    this.maximo = 0.9,
+  });
+
+  void _alternar() {
+    if (!controlador.isAttached) return;
+    final abierta = controlador.size > minimo + 0.05;
+    controlador.animateTo(abierta ? minimo : inicial, duration: const Duration(milliseconds: 280), curve: Curves.easeOutCubic);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final abajo = MediaQuery.of(context).padding.bottom;
+    return DraggableScrollableSheet(
+      controller: controlador,
+      initialChildSize: inicial,
+      minChildSize: minimo,
+      maxChildSize: maximo,
+      snap: true,
+      snapSizes: [inicial],
+      builder: (context, sc) => Container(
+        decoration: const BoxDecoration(
+          color: Tema.fondo,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
+          boxShadow: [BoxShadow(color: Color(0x26000000), blurRadius: 20, offset: Offset(0, -4))],
+        ),
+        child: ConReloj(
+          cada: const Duration(seconds: 1),
+          builder: (context, ahora) => ListView(
+            controller: sc,
+            padding: EdgeInsets.only(bottom: abajo + 16),
+            children: [
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: _alternar,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 9),
+                  child: Center(
+                    child: Container(
+                      width: 42,
+                      height: 5,
+                      decoration: BoxDecoration(color: Tema.grisClaro, borderRadius: BorderRadius.circular(3)),
+                    ),
+                  ),
+                ),
+              ),
+              ...hijos(ahora),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
