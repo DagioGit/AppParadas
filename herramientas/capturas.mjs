@@ -36,10 +36,25 @@ const tomas = [
 ];
 for (const [nombre, q] of tomas) {
   await pagina.goto("http://localhost:8099" + BASE + q, { waitUntil: "load" });
-  await pagina.waitForTimeout(q === "" || q.startsWith("?hacia") ? 20000 : 12000);
+  await pagina.waitForTimeout(q === "" || q.startsWith("?hacia") || q.includes("tab=viaje") ? 20000 : 12000);
   await pagina.screenshot({ path: path.join(salida, nombre + ".png") });
   console.log("captura", nombre);
 }
+
+// Arrastrar hacia abajo el panel "Combis cerca de ti"
+await pagina.goto("http://localhost:8099" + BASE, { waitUntil: "load" });
+await pagina.waitForTimeout(15000);
+await pagina.mouse.move(195, 540);
+await pagina.mouse.down();
+for (let y = 540; y <= 790; y += 25) { await pagina.mouse.move(195, y); await pagina.waitForTimeout(30); }
+await pagina.mouse.up();
+await pagina.waitForTimeout(2500);
+await pagina.screenshot({ path: path.join(salida, "1c-hoja-abajo.png") });
+
+// Viaje unos segundos después (la combi avanzó)
+await pagina.goto("http://localhost:8099" + BASE + "?tab=viaje&desde=gomez%20sada&hasta=av%20lazaro%20cardenas", { waitUntil: "load" });
+await pagina.waitForTimeout(25000);
+await pagina.screenshot({ path: path.join(salida, "2b-viaje-despues.png") });
 
 // Lista de paradas (más abajo en la pestaña Paradas)
 await pagina.goto("http://localhost:8099" + BASE + "?tab=paradas", { waitUntil: "load" });
