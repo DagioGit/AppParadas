@@ -80,20 +80,24 @@ Map<String, dynamic> geoRutas(Iterable<Ruta> rs, {bool tenues = false}) => colec
 
 // ---------------- Casetas (paradas en 3D) ----------------
 
-/// Caseta LZC simplificada: banqueta, respaldo de cristal, techo del color de la ruta y tótem.
+/// Color de techo/carrocería: la Ruta 1 gris se oscurece para que resalte sobre el mapa gris.
+String colorFuerte(Ruta r) => r.id == 'R1' ? '#3a3a3c' : hexColor(r.color);
+
+/// Caseta LZC simplificada (exagerada para verse desde arriba): banqueta, respaldo de cristal,
+/// techo del color de la ruta y tótem con la pantalla amarilla del contador.
 List<Map<String, dynamic>> caseta(Parada p, {bool resaltada = false}) {
   final r = p.ruta;
   final rumbo = r.trazo.rumboEn(p.metros);
   final c = p.punto;
   final ref = {'tipo': 'parada', 'ref': p.id};
-  const lado = 13.0; // metros hacia la banqueta (a la derecha del sentido de la combi)
-  final color = hexColor(r.color);
+  const lado = 18.0; // metros hacia la banqueta (a la derecha del sentido de la combi)
+  final color = colorFuerte(r);
   return [
-    caja(rectangulo(c, 18, 8, rumbo, derecha: lado), '#d1d1d6', 0, 0.6, ref),
-    caja(rectangulo(c, 15, 1.2, rumbo, derecha: lado + 3.2), resaltada ? '#ffffff' : '#e8f0f5', 0.6, 6.5, ref),
-    caja(rectangulo(c, 18, 7.5, rumbo, derecha: lado + 0.5), color, 6.5, 7.6, ref),
-    caja(rectangulo(c, 1.6, 1.6, rumbo, adelante: 11.5, derecha: lado + 2), '#1c1c1e', 0, 10, ref),
-    caja(rectangulo(c, 3.2, 1.8, rumbo, adelante: 11.5, derecha: lado + 2), resaltada ? '#34c759' : color, 7.5, 10.5, ref),
+    caja(rectangulo(c, 30, 13, rumbo, derecha: lado), '#c7c7cc', 0, 1, ref),
+    caja(rectangulo(c, 26, 1.8, rumbo, derecha: lado + 5.2), resaltada ? '#ffffff' : '#dbe7ef', 1, 10, ref),
+    caja(rectangulo(c, 30, 12, rumbo, derecha: lado + 0.8), color, 10, 12, ref),
+    caja(rectangulo(c, 2.4, 2.4, rumbo, adelante: 19, derecha: lado + 3), '#1c1c1e', 0, 17, ref),
+    caja(rectangulo(c, 5.5, 2.8, rumbo, adelante: 19, derecha: lado + 3), resaltada ? '#34c759' : '#f2c200', 11, 17.5, ref),
   ];
 }
 
@@ -117,16 +121,16 @@ Map<String, dynamic> geoSemaforos() => coleccion([
 
 // ---------------- Combis ----------------
 
-/// Combi en 3D: carrocería del color de la ruta, franja de ventanas oscura y techo blanco.
+/// Combi en 3D (exagerada): carrocería del color de la ruta, ventanas oscuras y techo blanco.
 List<Map<String, dynamic>> combi3d(Ruta r, LatLng p, double rumbo, String ref, {bool resaltada = false}) {
   final props = {'tipo': 'combi', 'ref': ref};
-  final color = hexColor(r.color);
-  final k = resaltada ? 1.7 : 1.4;
+  final color = colorFuerte(r);
+  final k = resaltada ? 2.6 : 2.1;
   return [
-    caja(rectangulo(p, 16 * k, 7 * k, rumbo, derecha: 2.5), color, 0.8, 4.2 * k, props),
-    caja(rectangulo(p, 13 * k, 7.2 * k, rumbo, adelante: -1, derecha: 2.5), '#2c3e50', 4.2 * k, 6 * k, props),
-    caja(rectangulo(p, 2.2 * k, 7.2 * k, rumbo, adelante: 6.2 * k, derecha: 2.5), '#2c3e50', 3.6 * k, 5.6 * k, props),
-    caja(rectangulo(p, 15 * k, 6.6 * k, rumbo, adelante: -0.5, derecha: 2.5), resaltada ? '#ffffff' : color, 6 * k, 7 * k, props),
+    caja(rectangulo(p, 16 * k, 7 * k, rumbo, derecha: 4), color, 0.6, 4.2 * k, props),
+    caja(rectangulo(p, 12.5 * k, 7.2 * k, rumbo, adelante: -1.2 * k, derecha: 4), '#1f2a36', 4.2 * k, 6 * k, props),
+    caja(rectangulo(p, 2.2 * k, 7.2 * k, rumbo, adelante: 6.2 * k, derecha: 4), '#1f2a36', 3.4 * k, 5.6 * k, props),
+    caja(rectangulo(p, 15 * k, 6.6 * k, rumbo, adelante: -0.6 * k, derecha: 4), resaltada ? '#34c759' : '#ffffff', 6 * k, 6.9 * k, props),
   ];
 }
 

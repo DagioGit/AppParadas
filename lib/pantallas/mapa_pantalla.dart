@@ -310,7 +310,7 @@ class _MapaPantallaState extends State<MapaPantalla> {
     setState(() {}); // cuentas regresivas del panel
   }
 
-  Future<void> _camara(LatLng centro, {double zoom = 16.4, double? tilt}) async {
+  Future<void> _camara(LatLng centro, {double zoom = 16.7, double? tilt}) async {
     await _c?.animateCamera(ml.CameraUpdate.newCameraPosition(ml.CameraPosition(
       target: ml.LatLng(centro.latitude, centro.longitude),
       zoom: zoom,
@@ -481,8 +481,8 @@ class _MapaPantallaState extends State<MapaPantalla> {
           child: ml.MapLibreMap(
             styleString: estiloMapa,
             initialCameraPosition: ml.CameraPosition(
-              target: ml.LatLng(origenDemo.latitude - 0.0012, origenDemo.longitude - 0.0004),
-              zoom: 16.3,
+              target: ml.LatLng(origenDemo.latitude - 0.0009, origenDemo.longitude - 0.0003),
+              zoom: 16.7,
               tilt: 58,
               bearing: -28,
             ),
@@ -543,6 +543,11 @@ class _MapaPantallaState extends State<MapaPantalla> {
             BotonFlotante(icono: Icons.near_me_rounded, onTap: () => _ubicarme()),
           ]),
         ),
+        Positioned(
+          left: 16,
+          bottom: abajo + altoPanel + 14,
+          child: IgnorePointer(child: _leyenda()),
+        ),
         if (_aviso != null)
           Positioned(
             left: 16,
@@ -574,6 +579,28 @@ class _MapaPantallaState extends State<MapaPantalla> {
             child: _destino == null ? _panelCerca() : _panelViaje(),
           ),
         ),
+      ]),
+    );
+  }
+
+  /// Qué es cada cosa en el mapa 3D.
+  Widget _leyenda() {
+    Widget item(Widget icono, String texto) => Padding(
+          padding: const EdgeInsets.symmetric(vertical: 2),
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
+            SizedBox(width: 22, child: Center(child: icono)),
+            const SizedBox(width: 6),
+            Text(texto, style: Tema.texto(size: 12, weight: FontWeight.w600)),
+          ]),
+        );
+    return Container(
+      padding: const EdgeInsets.fromLTRB(8, 6, 12, 6),
+      decoration: BoxDecoration(color: const Color(0xE6FFFFFF), borderRadius: BorderRadius.circular(12), boxShadow: Tema.sombra),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+        item(Container(width: 18, height: 10, decoration: BoxDecoration(color: const Color(0xFF3A3A3C), borderRadius: BorderRadius.circular(3), border: Border.all(color: const Color(0xFFFFFFFF), width: 1.5))), 'Combi en vivo'),
+        item(Container(width: 16, height: 12, decoration: BoxDecoration(color: Tema.amarillo, borderRadius: BorderRadius.circular(2))), 'Caseta (parada)'),
+        item(iconoSemaforo(alto: 16), 'Semáforo'),
+        item(Container(width: 12, height: 12, decoration: const BoxDecoration(color: Tema.azul, shape: BoxShape.circle)), 'Tú'),
       ]),
     );
   }
