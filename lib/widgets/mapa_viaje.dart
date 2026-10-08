@@ -105,7 +105,7 @@ class _MapaViajeState extends State<MapaViaje> {
           options: MapOptions(
             initialCameraFit: CameraFit.bounds(
               bounds: LatLngBounds.fromPoints(todos),
-              padding: const EdgeInsets.fromLTRB(40, 70, 40, 40),
+              padding: const EdgeInsets.fromLTRB(100, 80, 100, 45),
             ),
             interactionOptions: const InteractionOptions(flags: InteractiveFlag.all & ~InteractiveFlag.rotate),
           ),
