@@ -1,7 +1,7 @@
 name: Compilar AppParadas
 
-# Cada cambio en main: revisa el código, corre las pruebas, arma el APK de Android
-# y publica la versión web en GitHub Pages.
+# Cada cambio en main: revisa el código, corre las pruebas, publica la versión web
+# en GitHub Pages y arma el APK de Android.
 on:
   push:
     branches: [main]
@@ -17,15 +17,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  compilar:
+  web:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "17"
 
       - uses: subosito/flutter-action@v2
         with:
@@ -45,16 +40,18 @@ jobs:
         run: flutter pub get
 
       - name: Revisar el código
-        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+        run: bash herramientas/con_resumen.sh flutter analyze --no-fatal-infos --no-fatal-warnings
 
       - name: Pruebas
-        run: flutter test
+        run: bash herramientas/con_resumen.sh flutter test
 
       - name: Versión web
-        run: flutter build web --release --base-href "/${{ github.event.repository.name }}/"
+        run: bash herramientas/con_resumen.sh flutter build web --release --base-href "/${{ github.event.repository.name }}/"
 
-      - name: APK de Android
-        run: flutter build apk --release
+      - name: Preparar la página web
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web
 
       - name: Guardar las carpetas de plataforma en el repo
         if: env.NUEVAS == '1' && github.ref == 'refs/heads/main'
@@ -63,7 +60,46 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A android ios web .metadata
           git commit -m "Carpetas de Android, iOS y web generadas con flutter create" || exit 0
-          git push
+          git pull --rebase origin main && git push
+
+  publicar-web:
+    needs: web
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    # Si GitHub Pages aún no está en "GitHub Actions", este paso falla sin afectar lo demás.
+    continue-on-error: true
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
+
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: "3.24.5"
+          cache: true
+
+      - name: Crear carpetas de Android, iOS y web (sólo si faltan)
+        run: |
+          if [ ! -d android ]; then
+            flutter create --org mx.lzc --project-name app_paradas --platforms=android,ios,web .
+            python3 herramientas/configurar_plataformas.py
+          fi
+
+      - name: APK de Android
+        run: bash herramientas/con_resumen.sh flutter build apk --release
 
       - name: Subir el APK
         uses: actions/upload-artifact@v4
@@ -81,21 +117,3 @@ jobs:
           gh release create ultima AppParadas.apk \
             --title "AppParadas (última versión)" \
             --notes "APK de Android generado automáticamente desde ${GITHUB_SHA::7}. Instálalo en el teléfono permitiendo apps de origen desconocido."
-
-      - name: Preparar la página web
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: build/web
-
-  publicar-web:
-    needs: compilar
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    # Si GitHub Pages aún no está en "GitHub Actions", este paso falla sin afectar al APK.
-    continue-on-error: true
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
