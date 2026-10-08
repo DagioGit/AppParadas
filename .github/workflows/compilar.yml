@@ -52,6 +52,18 @@ jobs:
         with:
           path: build/web
 
+      - name: Capturas de pantalla (tamaño iPhone) en la rama "capturas"
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p /tmp/pw && cp herramientas/capturas.mjs /tmp/pw/
+          (cd /tmp/pw && npm init -y >/dev/null && npm i -s playwright@1.47.2 && npx playwright install --with-deps chromium >/dev/null)
+          node /tmp/pw/capturas.mjs "$PWD/build/web" /tmp/capturas
+          cd /tmp/capturas && git init -q && git checkout -q -b capturas
+          git add . && git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -q -m "Capturas de ${GITHUB_SHA::7}"
+          git push -q -f "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" capturas
+
       - name: Guardar las carpetas de plataforma en el repo
         if: env.NUEVAS == '1' && github.ref == 'refs/heads/main'
         continue-on-error: true

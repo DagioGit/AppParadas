@@ -31,7 +31,14 @@ class _ViajePantallaState extends State<ViajePantalla> {
     super.initState();
     destinoPedido.addListener(_alPedirDestino);
     pedirBusqueda.addListener(_alPedirBusqueda);
-    _ubicacionInicial();
+    _desde = desdeInicial;
+    _hasta = hastaInicial;
+    desdeInicial = null;
+    hastaInicial = null;
+    if (_desde == null) _ubicacionInicial();
+    if (_desde != null && _hasta != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _calcular());
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (destinoPedido.value != null) _alPedirDestino();
       if (busquedaPendiente) _alPedirBusqueda();

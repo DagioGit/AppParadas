@@ -3,7 +3,9 @@ import 'package:flutter/material.dart' show Icons;
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
+import 'datos/lugares.dart';
 import 'estado.dart';
+import 'pantallas/buscar_lugar.dart';
 import 'pantallas/mapa_pantalla.dart';
 import 'pantallas/rutas_pantalla.dart';
 import 'pantallas/viaje_pantalla.dart';
@@ -36,8 +38,38 @@ class AppParadas extends StatelessWidget {
   }
 }
 
-class Inicio extends StatelessWidget {
+/// Lee ?tab=…&desde=…&hasta=… de la dirección (sólo pasa en la versión web).
+void leerEnlace() {
+  final q = Uri.base.queryParameters;
+  Lugar? buscar(String? texto) {
+    if (texto == null || texto.trim().isEmpty) return null;
+    final t = normalizar(texto);
+    for (final l in todosLosLugares()) {
+      if (normalizar(l.nombre).contains(t)) return l;
+    }
+    return null;
+  }
+
+  desdeInicial = buscar(q['desde']);
+  hastaInicial = buscar(q['hasta']);
+  final tab = q['tab'];
+  if (tab == 'viaje' || hastaInicial != null) pestanas.index = 1;
+  if (tab == 'rutas') pestanas.index = 2;
+}
+
+class Inicio extends StatefulWidget {
   const Inicio({super.key});
+
+  @override
+  State<Inicio> createState() => _InicioState();
+}
+
+class _InicioState extends State<Inicio> {
+  @override
+  void initState() {
+    super.initState();
+    leerEnlace();
+  }
 
   @override
   Widget build(BuildContext context) {

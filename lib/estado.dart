@@ -23,3 +23,7 @@ void irAViaje({Lugar? destino}) {
     pedirBusqueda.value++;
   }
 }
+
+/// Viaje que se abre al iniciar (en la versión web: ?tab=viaje&desde=gomez&hasta=lazaro).
+Lugar? desdeInicial;
+Lugar? hastaInicial;
