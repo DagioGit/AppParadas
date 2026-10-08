@@ -28,3 +28,6 @@ ios/Pods/
 ios/.symlinks/
 ios/Runner/GeneratedPluginRegistrant.*
 **/xcuserdata/
+
+# Registro de la compilación en GitHub Actions
+salida.log
