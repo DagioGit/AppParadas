@@ -40,7 +40,7 @@ class RutasPantalla extends StatelessWidget {
                   style: Tema.texto(size: 15, height: 1.35),
                 ),
                 const SizedBox(height: 10),
-                Text('Mapa y calles: © colaboradores de OpenStreetMap · © CARTO', style: Tema.chico),
+                Text('Mapa y calles: © colaboradores de OpenStreetMap', style: Tema.chico),
               ]),
             ),
             SizedBox(height: MediaQuery.of(context).padding.bottom + 24),

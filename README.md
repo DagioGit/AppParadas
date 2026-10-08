@@ -34,4 +34,4 @@ flutter test           # pruebas del buscador de rutas
 | `lib/pantallas/` | Mapa, Viaje, Rutas y detalles |
 | `herramientas/gen_rutas.mjs` | Regenera `rutas_datos.dart` con `node herramientas/gen_rutas.mjs lib/datos/rutas_datos.dart` |
 
-Calles y recorridos: © colaboradores de OpenStreetMap (ODbL); rutas simuladas trazadas con OSRM; mapa base © CARTO.
+Calles y recorridos: © colaboradores de OpenStreetMap (ODbL); rutas simuladas trazadas con OSRM; mapa base de OpenStreetMap en gris.

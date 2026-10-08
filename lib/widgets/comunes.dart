@@ -104,16 +104,25 @@ class Encabezado extends StatelessWidget {
 
 // ---------------- Mapa ----------------
 
-/// Mapa base claro (CARTO Positron, datos de OpenStreetMap).
+/// Mapa base de OpenStreetMap pasado a gris claro, para que las rutas de color resalten
+/// (mismo estilo de "mapa gris" que la página web).
+const ColorFilter _filtroGris = ColorFilter.matrix(<double>[
+  0.2328, 0.6292, 0.0580, 0, 46, //
+  0.1871, 0.6743, 0.0585, 0, 46, //
+  0.1871, 0.6292, 0.1036, 0, 46, //
+  0, 0, 0, 1, 0, //
+]);
+
 TileLayer capaTeselas() => TileLayer(
-      urlTemplate: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png',
-      subdomains: const ['a', 'b', 'c', 'd'],
+      urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
       userAgentPackageName: 'mx.lzc.app_paradas',
+      maxNativeZoom: 19,
       maxZoom: 20,
+      tileBuilder: (context, tileWidget, tile) => ColorFiltered(colorFilter: _filtroGris, child: tileWidget),
     );
 
 Widget creditosMapa() => SimpleAttributionWidget(
-      source: Text('© OpenStreetMap · © CARTO', style: Tema.texto(size: 11, color: Tema.gris)),
+      source: Text('© colaboradores de OpenStreetMap', style: Tema.texto(size: 11, color: Tema.gris)),
       backgroundColor: const Color(0xB3FFFFFF),
     );
 

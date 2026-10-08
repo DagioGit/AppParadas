@@ -149,6 +149,18 @@ class Planificador {
       radioTransbordo += 250;
     }
 
+    // Un transbordo que no gana tiempo frente a ir directo en una de sus dos combis sobra.
+    final directos = {for (final o in mejores.values) if (o.transbordos == 0) o.firma: o.llegada};
+    final sobran = mejores.values.where((o) {
+      if (o.transbordos == 0) return false;
+      return o.firma.split('>').any((id) => directos[id] != null && directos[id]! <= o.llegada + 60);
+    }).toList()
+      ..sort((a, b) => b.llegada.compareTo(a.llegada));
+    for (final o in sobran) {
+      if (mejores.length <= minimo) break;
+      mejores.remove(o.firma);
+    }
+
     final lista = mejores.values.toList()..sort((a, b) => a.llegada.compareTo(b.llegada));
     final combis = lista.take(maximo).toList();
 
