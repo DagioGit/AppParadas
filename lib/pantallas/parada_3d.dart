@@ -37,6 +37,9 @@ class _Parada3DState extends State<Parada3D> {
   Parada get p => widget.parada;
   Ruta get r => p.ruta;
 
+  /// Centro de la caseta (a un lado de la calle), para que la cámara gire alrededor de ella.
+  LatLng get _centro => alLado(p.punto, r.trazo.rumboEn(p.metros), 6);
+
   @override
   void initState() {
     super.initState();
@@ -106,9 +109,9 @@ class _Parada3DState extends State<Parada3D> {
       _rumbo += 2.2;
       await c.animateCamera(
         ml.CameraUpdate.newCameraPosition(ml.CameraPosition(
-          target: ml.LatLng(p.punto.latitude, p.punto.longitude),
-          zoom: 19.3,
-          tilt: 62,
+          target: ml.LatLng(_centro.latitude, _centro.longitude),
+          zoom: 20.2,
+          tilt: 64,
           bearing: _rumbo,
         )),
         duration: const Duration(milliseconds: 700),
@@ -138,8 +141,8 @@ class _Parada3DState extends State<Parada3D> {
           child: ml.MapLibreMap(
             styleString: estiloMapa3D,
             initialCameraPosition: ml.CameraPosition(
-              target: ml.LatLng(p.punto.latitude, p.punto.longitude),
-              zoom: 19.3,
+              target: ml.LatLng(_centro.latitude, _centro.longitude),
+              zoom: 20.2,
               tilt: 62,
               bearing: _rumbo,
             ),

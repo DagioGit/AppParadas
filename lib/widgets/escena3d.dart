@@ -24,6 +24,10 @@ LatLng mover(LatLng p, double este, double norte) => LatLng(
       p.longitude + este / (111320 * math.cos(p.latitude * math.pi / 180)),
     );
 
+/// Punto a [derecha] metros a la derecha de [c] mirando hacia [rumbo].
+LatLng alLado(LatLng c, double rumbo, double derecha) =>
+    mover(c, math.cos(rumbo) * derecha, -math.sin(rumbo) * derecha);
+
 /// Rectángulo de [largo] (en el sentido del [rumbo]) por [ancho], movido [adelante] y a la [derecha].
 List<List<double>> rectangulo(LatLng c, double largo, double ancho, double rumbo, {double adelante = 0, double derecha = 0}) {
   final fx = math.sin(rumbo), fy = math.cos(rumbo); // hacia adelante (este, norte)
