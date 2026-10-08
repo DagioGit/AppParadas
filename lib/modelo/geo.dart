@@ -44,6 +44,15 @@ class Trazo {
     return puntos.last;
   }
 
+  /// Rumbo del recorrido en [s], en radianes (0 = norte, sentido horario).
+  double rumboEn(double s) {
+    final a = puntoEn(math.max(0.0, s - 8));
+    final b = puntoEn(math.min(largo, s + 8));
+    final x = (b.longitude - a.longitude) * math.cos(a.latitude * _rad);
+    final y = b.latitude - a.latitude;
+    return math.atan2(x, y);
+  }
+
   /// Distancias (desde el inicio) de cada vez que el recorrido pasa a menos de [radio] metros de [q].
   /// Una ruta de ida y vuelta por la misma avenida pasa dos veces por el mismo semáforo.
   List<double> pasos(LatLng q, {double radio = 35}) {

@@ -54,6 +54,7 @@ void leerEnlace() {
   desdeInicial = buscar(q['desde']);
   hastaInicial = buscar(q['hasta']);
   detalleInicial = q['detalle'] == '1';
+  destinoMapaInicial = buscar(q['hacia']);
   final tab = q['tab'];
   if (tab == 'viaje' || hastaInicial != null) pestanas.index = 1;
   if (tab == 'paradas') pestanas.index = 2;

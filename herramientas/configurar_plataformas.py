@@ -42,6 +42,8 @@ if index.exists():
     h = re.sub(r"<title>[^<]*</title>", f"<title>{NOMBRE}</title>", h)
     h = h.replace('content="app_paradas"', f'content="{NOMBRE}"')
     h = h.replace('content="A new Flutter project."', 'content="Rutas de combi de Lázaro Cárdenas y la ruta más rápida."')
+    if "maplibre-gl" not in h:
+        h = h.replace(f"<title>{NOMBRE}</title>", f"<title>{NOMBRE}</title>\n  <script src=\"https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js\"></script>\n  <link href=\"https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css\" rel=\"stylesheet\" />")
     index.write_text(h)
 
 manifest = RAIZ / "web/manifest.json"

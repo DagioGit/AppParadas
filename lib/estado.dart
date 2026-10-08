@@ -30,3 +30,6 @@ Lugar? hastaInicial;
 
 /// Abrir el detalle de la opción más rápida al iniciar (?detalle=1).
 bool detalleInicial = false;
+
+/// Destino que el mapa principal muestra al abrir (?hacia=…).
+Lugar? destinoMapaInicial;
