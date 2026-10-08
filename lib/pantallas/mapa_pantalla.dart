@@ -142,6 +142,8 @@ class _MapaPantallaState extends State<MapaPantalla> {
     await c.addGeoJsonSource('casetas', coleccion([]));
     await c.addGeoJsonSource('semaforos', geoSemaforos());
     await c.addGeoJsonSource('combis', coleccion([]));
+    await c.addGeoJsonSource('combis-puntos', coleccion([]));
+    await c.addGeoJsonSource('paradas-puntos', coleccion([]));
     await c.addGeoJsonSource('pines', coleccion([]));
     await c.addGeoJsonSource('etiquetas', coleccion([]));
 
@@ -175,6 +177,31 @@ class _MapaPantallaState extends State<MapaPantalla> {
     await c.addFillExtrusionLayer('semaforos', 'semaforos-3d', extrusion);
     await c.addFillExtrusionLayer('combis', 'combis-3d', extrusion);
     await c.addFillExtrusionLayer('pines', 'pines-3d', extrusion);
+    await c.addCircleLayer(
+      'paradas-puntos',
+      'paradas-punto',
+      ml.CircleLayerProperties(circleRadius: 5, circleColor: '#ffffff', circleStrokeColor: ['get', 'color'], circleStrokeWidth: 3),
+      maxzoom: 15.6,
+    );
+    await c.addCircleLayer(
+      'combis-puntos',
+      'combis-punto',
+      ml.CircleLayerProperties(circleRadius: ['get', 'radio'], circleColor: ['get', 'color'], circleStrokeColor: '#ffffff', circleStrokeWidth: 2.5),
+      maxzoom: 16.2,
+    );
+    await c.addSymbolLayer(
+      'combis-puntos',
+      'combis-numero',
+      ml.SymbolLayerProperties(
+        textField: ['get', 'texto'],
+        textFont: ['Noto Sans Bold'],
+        textSize: 11,
+        textColor: ['get', 'letra'],
+        textAllowOverlap: true,
+        textIgnorePlacement: true,
+      ),
+      maxzoom: 16.2,
+    );
     await c.addSymbolLayer(
       'etiquetas',
       'etiquetas-texto',
@@ -187,8 +214,10 @@ class _MapaPantallaState extends State<MapaPantalla> {
         textHaloWidth: 2.5,
         textAnchor: 'bottom',
         textOffset: [0, -1.6],
-        textAllowOverlap: true,
-        textIgnorePlacement: true,
+        textAllowOverlap: false,
+        textIgnorePlacement: false,
+        symbolSortKey: ['get', 'prioridad'],
+        textMaxWidth: 14,
       ),
     );
     _listo = true;
@@ -220,6 +249,7 @@ class _MapaPantallaState extends State<MapaPantalla> {
     await c.setGeoJsonSource('rutas', geoRutas(_rutasVisibles, tenues: o != null));
     await c.setGeoJsonSource('viaje', geoViaje(o));
     await c.setGeoJsonSource('casetas', geoCasetas(_rutasVisibles, resaltadas: resaltadas));
+    await c.setGeoJsonSource('paradas-puntos', geoParadasPuntos(_rutasVisibles));
     await c.setGeoJsonSource('pines', geoPines(_yo, _destino?.punto));
     await _dibujarVivo();
   }
@@ -242,29 +272,32 @@ class _MapaPantallaState extends State<MapaPantalla> {
           t.sube!.punto,
           i == 0 ? 'Sube aquí · ${faltaTexto(t.inicio, ahora)}' : 'Cambia a la Ruta ${r.numero} · ${faltaTexto(t.inicio, ahora)}',
           r.color.computeLuminance() > 0.6 ? const Color(0xFF8A6D00) : r.color,
+          prioridad: 1,
         ));
         final salida = r.salidaDe(t.sube!, t.inicio);
         destacadas.add('${r.id}|${salida.round()}');
         final p = r.combiQueLlega(t.sube!, t.inicio, ahora);
-        if (p != null && ahora < t.inicio) etiquetas.add(etiqueta(p, 'Tu combi · ${faltaTexto(t.inicio, ahora)}', Tema.tinta));
+        if (p != null && ahora < t.inicio) etiquetas.add(etiqueta(p, 'Tu combi · ${faltaTexto(t.inicio, ahora)}', Tema.tinta, prioridad: 2));
       }
-      if (combis.isNotEmpty) etiquetas.add(etiqueta(combis.last.baja!.punto, 'Bájate aquí · ${hora(combis.last.fin)}', Tema.tinta));
-      if (_destino != null) etiquetas.add(etiqueta(_destino!.punto, _destino!.nombre, const Color(0xFFD70015)));
+      if (combis.isNotEmpty) etiquetas.add(etiqueta(combis.last.baja!.punto, 'Bájate aquí · ${hora(combis.last.fin)}', Tema.tinta, prioridad: 1));
+      if (_destino != null) etiquetas.add(etiqueta(_destino!.punto, _destino!.nombre, const Color(0xFFD70015), prioridad: 3));
     } else {
       for (final x in _cercanas().take(3)) {
         final r = x.parada.ruta;
         final llegada = r.proximaLlegada(x.parada, ahora);
         etiquetas.add(etiqueta(x.parada.punto, 'Ruta ${r.numero} · ${faltaTexto(llegada, ahora)}',
-            r.color.computeLuminance() > 0.6 ? const Color(0xFF8A6D00) : r.color));
+            r.color.computeLuminance() > 0.6 ? const Color(0xFF8A6D00) : r.color,
+            prioridad: 1));
         final salida = r.salidaDe(x.parada, llegada);
         destacadas.add('${r.id}|${salida.round()}');
         final p = r.combiQueLlega(x.parada, llegada, ahora);
-        if (p != null) etiquetas.add(etiqueta(p, '→ tu parada ${faltaTexto(llegada, ahora)}', Tema.tinta));
+        if (p != null) etiquetas.add(etiqueta(p, 'Combi ${r.numero} → tu parada ${faltaTexto(llegada, ahora)}', Tema.tinta, prioridad: 2));
       }
     }
-    etiquetas.add(etiqueta(_yo, _yoReal ? 'Estás aquí' : 'Estás aquí (mantén presionado para mover)', Tema.azul));
+    etiquetas.add(etiqueta(_yo, 'Estás aquí', Tema.azul, prioridad: 0));
 
     await c.setGeoJsonSource('combis', geoCombis(_rutasVisibles, ahora, resaltadas: destacadas));
+    await c.setGeoJsonSource('combis-puntos', geoCombisPuntos(_rutasVisibles, ahora, resaltadas: destacadas));
     await c.setGeoJsonSource('etiquetas', coleccion(etiquetas));
   }
 
@@ -277,7 +310,7 @@ class _MapaPantallaState extends State<MapaPantalla> {
     setState(() {}); // cuentas regresivas del panel
   }
 
-  Future<void> _camara(LatLng centro, {double zoom = 15.6, double? tilt}) async {
+  Future<void> _camara(LatLng centro, {double zoom = 16.4, double? tilt}) async {
     await _c?.animateCamera(ml.CameraUpdate.newCameraPosition(ml.CameraPosition(
       target: ml.LatLng(centro.latitude, centro.longitude),
       zoom: zoom,
@@ -299,9 +332,9 @@ class _MapaPantallaState extends State<MapaPantalla> {
     final centro = LatLng((minLat + maxLat) / 2 - (maxLat - minLat) * 0.25, (minLng + maxLng) / 2);
     final alto = (maxLat - minLat) * 110574;
     final ancho = (maxLng - minLng) * 111320 * math.cos(centro.latitude * math.pi / 180);
-    final tramo = math.max(math.max(alto, ancho) * 1.5, 400.0);
-    final zoom = (math.log(78271.5 * math.cos(centro.latitude * math.pi / 180) * 360 / tramo) / math.ln2).clamp(12.5, 17.0);
-    await _camara(centro, zoom: zoom.toDouble());
+    final tramo = math.max(math.max(alto, ancho) * 1.1, 350.0);
+    final zoom = (math.log(78271.5 * math.cos(centro.latitude * math.pi / 180) * 390 / tramo) / math.ln2).clamp(13.0, 17.2);
+    await _camara(centro, zoom: zoom.toDouble(), tilt: _tresD ? 50 : 0);
   }
 
   Future<void> _alTocarMapa(math.Point<double> punto, ml.LatLng _) async {
@@ -309,7 +342,8 @@ class _MapaPantallaState extends State<MapaPantalla> {
     if (c == null) return;
     List<dynamic> f = const [];
     try {
-      f = await c.queryRenderedFeatures(punto, ['combis-3d', 'casetas-3d', 'semaforos-3d', 'viaje-linea'], null);
+      f = await c.queryRenderedFeatures(
+          punto, ['combis-3d', 'combis-punto', 'casetas-3d', 'paradas-punto', 'semaforos-3d', 'viaje-linea'], null);
     } catch (_) {
       return;
     }
@@ -447,8 +481,8 @@ class _MapaPantallaState extends State<MapaPantalla> {
           child: ml.MapLibreMap(
             styleString: estiloMapa,
             initialCameraPosition: ml.CameraPosition(
-              target: ml.LatLng(origenDemo.latitude - 0.002, origenDemo.longitude),
-              zoom: 15.4,
+              target: ml.LatLng(origenDemo.latitude - 0.0012, origenDemo.longitude - 0.0004),
+              zoom: 16.3,
               tilt: 58,
               bearing: -28,
             ),

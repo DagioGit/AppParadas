@@ -86,7 +86,7 @@ List<Map<String, dynamic>> caseta(Parada p, {bool resaltada = false}) {
   final rumbo = r.trazo.rumboEn(p.metros);
   final c = p.punto;
   final ref = {'tipo': 'parada', 'ref': p.id};
-  const lado = 11.0; // metros hacia la banqueta (a la derecha del sentido de la combi)
+  const lado = 13.0; // metros hacia la banqueta (a la derecha del sentido de la combi)
   final color = hexColor(r.color);
   return [
     caja(rectangulo(c, 18, 8, rumbo, derecha: lado), '#d1d1d6', 0, 0.6, ref),
@@ -121,7 +121,7 @@ Map<String, dynamic> geoSemaforos() => coleccion([
 List<Map<String, dynamic>> combi3d(Ruta r, LatLng p, double rumbo, String ref, {bool resaltada = false}) {
   final props = {'tipo': 'combi', 'ref': ref};
   final color = hexColor(r.color);
-  final k = resaltada ? 1.25 : 1.0;
+  final k = resaltada ? 1.7 : 1.4;
   return [
     caja(rectangulo(p, 16 * k, 7 * k, rumbo, derecha: 2.5), color, 0.8, 4.2 * k, props),
     caja(rectangulo(p, 13 * k, 7.2 * k, rumbo, adelante: -1, derecha: 2.5), '#2c3e50', 4.2 * k, 6 * k, props),
@@ -131,6 +131,26 @@ List<Map<String, dynamic>> combi3d(Ruta r, LatLng p, double rumbo, String ref, {
 }
 
 String refCombi(CombiEnRuta c) => '${c.ruta.id}|${c.salida.round()}';
+
+/// Punto de color con el número de la ruta: así se ve cada combi aunque el mapa esté lejos.
+Map<String, dynamic> geoCombisPuntos(Iterable<Ruta> rs, double ahora, {Set<String> resaltadas = const {}}) => coleccion([
+      for (final r in rs)
+        for (final c in r.combisEn(ahora))
+          punto(c.punto, {
+            'color': hexColor(r.color),
+            'texto': '${r.numero}',
+            'letra': r.color.computeLuminance() > 0.5 ? '#111111' : '#ffffff',
+            'radio': resaltadas.contains(refCombi(c)) ? 13.0 : 9.0,
+            'tipo': 'combi',
+            'ref': refCombi(c),
+          }),
+    ]);
+
+Map<String, dynamic> geoParadasPuntos(Iterable<Ruta> rs) => coleccion([
+      for (final r in rs)
+        for (final p in r.paradas)
+          if (p.principal) punto(p.punto, {'color': hexColor(r.color), 'tipo': 'parada', 'ref': p.id}),
+    ]);
 
 Map<String, dynamic> geoCombis(Iterable<Ruta> rs, double ahora, {Set<String> resaltadas = const {}}) {
   final f = <Map<String, dynamic>>[];
@@ -162,5 +182,6 @@ Map<String, dynamic> geoViaje(Opcion? o) => coleccion([
     ]);
 
 /// Texto flotante sobre el mapa.
-Map<String, dynamic> etiqueta(LatLng p, String texto, Color color, {double alto = 0}) =>
-    punto(p, {'texto': texto, 'color': hexColor(color), 'alto': alto});
+/// [prioridad]: las de número menor se colocan primero y no se tapan.
+Map<String, dynamic> etiqueta(LatLng p, String texto, Color color, {int prioridad = 5}) =>
+    punto(p, {'texto': texto, 'color': hexColor(color), 'prioridad': prioridad});
