@@ -91,7 +91,7 @@ class _HojaParadaState extends State<HojaParada> {
               ),
               CupertinoButton(
                 padding: EdgeInsets.zero,
-                minSize: 32,
+                minimumSize: const Size(32, 32),
                 onPressed: () => Navigator.of(context).pop(),
                 child: const Icon(Icons.close_rounded, color: Tema.gris),
               ),

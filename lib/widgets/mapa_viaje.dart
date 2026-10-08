@@ -74,7 +74,7 @@ class _MapaViajeState extends State<MapaViaje> {
         for (final t in o.enCombi)
           Polyline<Opcion>(
             points: t.puntos,
-            color: t.ruta!.color.withOpacity(0.55),
+            color: t.ruta!.color.withValues(alpha: 0.55),
             strokeWidth: 4,
             hitValue: o,
           ),

@@ -244,7 +244,7 @@ class _ViajePantallaState extends State<ViajePantalla> {
           Expanded(child: Text('${ops.length} OPCIONES · SALIENDO A LAS ${hora(_calculadoA)}', style: Tema.etiqueta)),
           CupertinoButton(
             padding: EdgeInsets.zero,
-            minSize: 24,
+            minimumSize: const Size(24, 24),
             onPressed: _calcular,
             child: Text('Actualizar', style: Tema.texto(size: 13, weight: FontWeight.w600, color: Tema.azul)),
           ),

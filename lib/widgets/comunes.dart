@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' show Icons;
 import 'package:flutter/scheduler.dart' show Ticker;
 import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
+import 'package:latlong2/latlong.dart' show LatLng;
 
 import '../datos/semaforos.dart';
 import '../modelo/ruta.dart';
@@ -130,7 +130,7 @@ Widget creditosMapa() => SimpleAttributionWidget(
 
 Polyline lineaRuta(List<LatLng> puntos, Color color, {double ancho = 5, bool tenue = false}) => Polyline(
       points: puntos,
-      color: tenue ? color.withOpacity(0.35) : color,
+      color: tenue ? color.withValues(alpha: 0.35) : color,
       strokeWidth: ancho,
       borderColor: tenue ? const Color(0x00FFFFFF) : const Color(0xFFFFFFFF),
       borderStrokeWidth: tenue ? 0 : 1.5,
@@ -262,7 +262,7 @@ Widget iconoCombi(Ruta r, {double tam = 26, bool resaltada = false}) {
       borderRadius: BorderRadius.circular(tam * 0.32),
       border: Border.all(color: const Color(0xFFFFFFFF), width: resaltada ? 3 : 2),
       boxShadow: [
-        BoxShadow(color: resaltada ? r.color.withOpacity(0.6) : const Color(0x55000000), blurRadius: resaltada ? 10 : 4, spreadRadius: resaltada ? 2 : 0),
+        BoxShadow(color: resaltada ? r.color.withValues(alpha: 0.6) : const Color(0x55000000), blurRadius: resaltada ? 10 : 4, spreadRadius: resaltada ? 2 : 0),
       ],
     ),
     child: Icon(Icons.directions_bus_rounded, size: tam * 0.62, color: claro ? Tema.tinta : const Color(0xFFFFFFFF)),

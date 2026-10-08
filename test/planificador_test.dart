@@ -11,8 +11,8 @@ void main() {
 
   test('Hay cinco rutas y la 1 es gris y la 2 amarilla', () {
     expect(rutas.length, 5);
-    expect(rutaPorId('R1').color.value, 0xFF6E6E73);
-    expect(rutaPorId('R2').color.value, 0xFFF2C200);
+    expect(rutaPorId('R1').color.toARGB32(), 0xFF6E6E73);
+    expect(rutaPorId('R2').color.toARGB32(), 0xFFF2C200);
     for (final r in rutas) {
       expect(r.paradas, isNotEmpty);
       expect(r.trazo.largo, greaterThan(5000));
