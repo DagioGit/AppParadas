@@ -6,8 +6,10 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'datos/lugares.dart';
 import 'estado.dart';
+import 'modelo/ruta.dart';
 import 'pantallas/buscar_lugar.dart';
 import 'pantallas/mapa_pantalla.dart';
+import 'pantallas/parada_3d.dart';
 import 'pantallas/paradas_pantalla.dart';
 import 'pantallas/rutas_pantalla.dart';
 import 'pantallas/viaje_pantalla.dart';
@@ -75,6 +77,19 @@ class _InicioState extends State<Inicio> {
   void initState() {
     super.initState();
     leerEnlace();
+    // ?parada3d=R1-4i abre directo la vista 3D de esa parada
+    final id = Uri.base.queryParameters['parada3d'];
+    if (id != null) {
+      for (final r in rutas) {
+        for (final p in r.paradas) {
+          if (p.id == id) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              Navigator.of(context).push(CupertinoPageRoute<void>(builder: (_) => Parada3D(parada: p)));
+            });
+          }
+        }
+      }
+    }
   }
 
   @override

@@ -28,7 +28,8 @@ pagina.on("console", m => { if (m.type() === "error") console.log("consola:", m.
 const tomas = [
   ["1-mapa", ""],
   ["1b-mapa-viaje", "?hacia=malecon%20de%20la%20cultura"],
-  ["2-viaje", "?tab=viaje&desde=gomez%20sada&hasta=av%20lazaro%20cardenas"],
+  ["2-viaje", "?tab=viaje&desde=malecon%20de%20la%20cultura&hasta=gomez%20sada"],
+  ["2c-parada3d", "?parada3d=R1-4i"],
   ["3-rutas", "?tab=rutas"],
   ["4-viaje-tec-malecon", "?tab=viaje&desde=instituto%20tecnologico&hasta=malecon%20de%20la%20cultura"],
   ["5-opcion", "?desde=gomez%20sada&hasta=av%20lazaro%20cardenas&detalle=1"],
@@ -36,7 +37,7 @@ const tomas = [
 ];
 for (const [nombre, q] of tomas) {
   await pagina.goto("http://localhost:8099" + BASE + q, { waitUntil: "load" });
-  await pagina.waitForTimeout(q === "" || q.startsWith("?hacia") || q.includes("tab=viaje") ? 20000 : 12000);
+  await pagina.waitForTimeout(q === "" || q.startsWith("?hacia") || q.includes("tab=viaje") || q.includes("parada3d") ? 20000 : 12000);
   await pagina.screenshot({ path: path.join(salida, nombre + ".png") });
   console.log("captura", nombre);
 }
