@@ -5,6 +5,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart' show LatLng;
 
 import '../datos/semaforos.dart';
+import '../modelo/incidentes.dart';
 import '../modelo/ruta.dart';
 import '../tema.dart';
 import 'selector_hora.dart';
@@ -383,7 +384,9 @@ Future<void> mostrarCombi(BuildContext context, CombiEnRuta c) {
   final sig = c.siguiente;
   final ahora = segundosAhora();
   final llega = c.faltaSiguiente(ahora);
-  final estado = c.pausa?.semaforo != null
+  final estado = c.pausa?.incidente != null
+      ? 'Detenida por un accidente en ${c.pausa!.incidente!.donde}.'
+      : c.pausa?.semaforo != null
       ? 'Esperando el verde en el semáforo.'
       : c.pausa?.parada != null
           ? 'En la parada ${c.pausa!.parada!.nombre}: sube y baja gente.'
@@ -612,3 +615,114 @@ Marker marcadorDestino(LatLng p, {double tam = 44}) => Marker(
       alignment: Alignment.topCenter,
       child: Icon(Icons.location_on_rounded, size: tam, color: const Color(0xFFFF3B30), shadows: const [Shadow(color: Color(0x55000000), blurRadius: 4, offset: Offset(0, 2))]),
     );
+
+
+// ---------------- Tráfico y accidentes ----------------
+
+Color colorIncidente(Incidente inc) => inc.esAccidente ? const Color(0xFFFF3B30) : const Color(0xFFFF9500);
+
+/// Ícono 2D: triángulo de aviso (naranja = tráfico, rojo = accidente).
+Widget iconoIncidente(Incidente inc, {double tam = 30}) => Container(
+      width: tam,
+      height: tam,
+      decoration: BoxDecoration(
+        color: colorIncidente(inc),
+        shape: BoxShape.circle,
+        border: Border.all(color: const Color(0xFFFFFFFF), width: 2.5),
+        boxShadow: const [BoxShadow(color: Color(0x55000000), blurRadius: 4, offset: Offset(0, 1))],
+      ),
+      child: Icon(inc.esAccidente ? Icons.car_crash_rounded : Icons.traffic_rounded, size: tam * 0.58, color: const Color(0xFFFFFFFF)),
+    );
+
+/// Retraso aproximado que causa [inc] a una combi.
+double retrasoIncidente(Incidente inc) {
+  if (inc.esAccidente) return inc.espera;
+  return 2 * inc.radio / (18 / 3.6) * (inc.factor - 1);
+}
+
+/// Calles con tráfico en rojo / naranja (se actualiza sola).
+Widget capaTrafico() => ConReloj(
+      cada: const Duration(seconds: 5),
+      builder: (context, ahora) => PolylineLayer(polylines: [
+        for (final inc in incidentesEn(ahora))
+          for (final l in lineasIncidente(inc))
+            Polyline(points: l, color: colorIncidente(inc).withValues(alpha: 0.85), strokeWidth: 7, borderColor: const Color(0xFFFFFFFF), borderStrokeWidth: 1.5),
+      ]),
+    );
+
+/// Íconos de tráfico y accidentes; al tocarlos dicen dónde y cuánto se retrasa la combi.
+Widget capaAvisos(BuildContext context) => ConReloj(
+      cada: const Duration(seconds: 5),
+      builder: (context, ahora) => MarkerLayer(markers: [
+        for (final inc in incidentesEn(ahora))
+          Marker(
+            point: inc.punto,
+            width: 34,
+            height: 34,
+            child: GestureDetector(onTap: () => mostrarIncidente(context, inc), child: iconoIncidente(inc, tam: 30)),
+          ),
+      ]),
+    );
+
+Future<void> mostrarIncidente(BuildContext context, Incidente inc) {
+  return showCupertinoModalPopup<void>(
+    context: context,
+    builder: (ctx) => CupertinoActionSheet(
+      title: Text('${inc.titulo} en ${inc.donde}', style: Tema.texto(size: 16, weight: FontWeight.w700)),
+      message: Text(
+        '${inc.esAccidente ? 'Las combis se detienen' : 'Las combis avanzan lento'}: se retrasan ${textoRetraso(retrasoIncidente(inc)).substring(1)}.\n'
+        'Hasta las ${hora(inc.fin)} (simulado).',
+        style: Tema.texto(size: 15, color: Tema.gris),
+      ),
+      cancelButton: CupertinoActionSheetAction(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cerrar')),
+    ),
+  );
+}
+
+/// Fila de aviso: "Tráfico en Av. X · +3 min".
+class FilaIncidente extends StatelessWidget {
+  final Incidente inc;
+  final double retraso;
+  final double tam;
+  const FilaIncidente(this.inc, this.retraso, {super.key, this.tam = 16});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 6),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Padding(padding: const EdgeInsets.only(top: 1), child: iconoIncidente(inc, tam: tam + 8)),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text.rich(
+            TextSpan(children: [
+              TextSpan(text: '${inc.titulo} en ${inc.donde} ', style: Tema.texto(size: tam, weight: FontWeight.w600)),
+              TextSpan(text: textoRetraso(retraso), style: Tema.texto(size: tam, weight: FontWeight.w800, color: colorIncidente(inc))),
+            ]),
+          ),
+        ),
+      ]),
+    );
+  }
+}
+
+/// Tarjeta con el tráfico y los accidentes que afectan a [ruta] ahora mismo.
+class AvisoIncidentes extends StatelessWidget {
+  final Ruta ruta;
+  final double ahora;
+  const AvisoIncidentes(this.ruta, this.ahora, {super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final lista = ruta.incidentesAhora(ahora);
+    if (lista.isEmpty) return const SizedBox.shrink();
+    return Tarjeta(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text('La combi viene con retraso', style: Tema.texto(size: 18, weight: FontWeight.w800)),
+        for (final (inc, r) in lista)
+          GestureDetector(onTap: () => mostrarIncidente(context, inc), child: FilaIncidente(inc, r, tam: 16)),
+      ]),
+    );
+  }
+}

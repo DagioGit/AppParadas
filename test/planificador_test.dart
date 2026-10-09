@@ -1,10 +1,14 @@
 import 'package:app_paradas/datos/semaforos.dart';
+import 'package:app_paradas/modelo/incidentes.dart';
 import 'package:app_paradas/modelo/planificador.dart';
 import 'package:app_paradas/modelo/ruta.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
 
 void main() {
+  // Sin tráfico ni accidentes simulados: así las pruebas no cambian con la fecha.
+  simularIncidentes = false;
+
   const gomezSada = LatLng(17.9818, -102.2271);
   const avLazaroCardenas = LatLng(17.9612, -102.1979);
   const tec = LatLng(17.9737, -102.2330);

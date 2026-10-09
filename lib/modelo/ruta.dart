@@ -8,6 +8,7 @@ import '../datos/rutas_datos.dart';
 import '../datos/rutas_modelo_datos.dart';
 import '../datos/semaforos.dart';
 import 'geo.dart';
+import 'incidentes.dart';
 
 /// Las combis pasan de 6:00 a 21:00: la última sale a tiempo para terminar su vuelta a las 21:00.
 const int inicioServicio = 6 * 3600;
@@ -109,7 +110,8 @@ class Pausa {
   final double segundos; // espera típica
   final Parada? parada;
   final Semaforo? semaforo;
-  Pausa(this.metros, this.segundos, {this.parada, this.semaforo});
+  final Incidente? incidente; // accidente sobre la calle
+  Pausa(this.metros, this.segundos, {this.parada, this.semaforo, this.incidente});
 }
 
 /// Pedazo de la vuelta: la combi avanza (arranca, va y frena) o está detenida.
@@ -170,7 +172,15 @@ class Vuelta {
     void avanzar(double hasta) {
       final d = hasta - s;
       if (d < 0.5) return;
-      final v = ruta.velocidadMs * chofer / factorTrafico(salida + t);
+      var v = ruta.velocidadMs * chofer / factorTrafico(salida + t);
+      // Tráfico en el camino: ese pedazo de calle se avanza más lento
+      var extra = 0.0;
+      for (final (inc, m) in ruta.zonasIncidente) {
+        if (inc.tipo != TipoIncidente.trafico || !inc.activo(salida + t)) continue;
+        final a = math.max(s, m - inc.radio), b = math.min(hasta, m + inc.radio);
+        if (b > a) extra += (b - a) / v * (inc.factor - 1);
+      }
+      if (extra > 0) v = v * (d / v) / (d / v + extra);
       final T = _tiempoTramo(d, v);
       _pedazos.add(_Pedazo(t, t + T, s, hasta, v));
       t += T;
@@ -183,8 +193,17 @@ class Vuelta {
       t += seg;
     }
 
-    for (final p in ruta.pausas) {
-      if (p.semaforo != null) {
+    for (final p in ruta.eventos) {
+      if (p.incidente != null) {
+        // Accidente: si está pasando cuando llega la combi, se queda detenida unos minutos
+        final inc = p.incidente!;
+        final v = ruta.velocidadMs * chofer / factorTrafico(salida + t);
+        final llegaria = salida + t + _tiempoSinFrenar(p.metros - s, v);
+        if (!inc.activo(llegaria)) continue;
+        avanzar(p.metros);
+        final azar = tipica ? 1.0 : 0.8 + 0.4 * _azar(ruta.id, numero, 500 + inc.id);
+        detener(inc.espera * azar, p);
+      } else if (p.semaforo != null) {
         final sem = p.semaforo!;
         final v = ruta.velocidadMs * chofer / factorTrafico(salida + t);
         final llegaria = salida + t + _tiempoSinFrenar(p.metros - s, v);
@@ -278,6 +297,12 @@ class Ruta {
   late final List<Pausa> pausas;
   late final List<Semaforo> semaforosEnRuta;
 
+  /// Tráfico y accidentes de hoy sobre el recorrido, con el metro donde caen.
+  late final List<(Incidente, double)> zonasIncidente;
+
+  /// Paradas, semáforos y accidentes en orden por el recorrido.
+  late final List<Pausa> eventos;
+
   /// Horas de salida del día: más seguidas en hora pico y más espaciadas en la noche.
   late final List<double> salidas;
   late final Vuelta tipica;
@@ -301,6 +326,17 @@ class Ruta {
     lista.sort((a, b) => a.metros.compareTo(b.metros));
     pausas = lista;
     semaforosEnRuta = enRuta;
+
+    // Tráfico y accidentes de hoy que caen sobre el recorrido
+    zonasIncidente = [
+      for (final inc in incidentesHoy)
+        for (final m in trazo.pasos(inc.punto, radio: 40)) (inc, m),
+    ];
+    eventos = [
+      ...pausas,
+      for (final (inc, m) in zonasIncidente)
+        if (inc.esAccidente) Pausa(m, inc.espera, incidente: inc),
+    ]..sort((a, b) => a.metros.compareTo(b.metros));
 
     // Salidas: más seguidas en hora pico, más espaciadas al final del día, y la última
     // sale a tiempo para terminar su vuelta antes de las 21:00.
@@ -455,6 +491,34 @@ class Ruta {
     }
     final v0 = vuelta(0);
     r.add((segundosDia + salidas[0] + v0.llegadas[p.indice], v0.esperaEn(p)));
+    return r;
+  }
+
+  /// Tráfico y accidentes en el viaje de [a] a [b] entre los segundos [desde] y [hasta],
+  /// con cuánto retrasan a la combi (aproximado).
+  List<(Incidente, double)> incidentesEnViaje(Parada a, Parada b, double desde, double hasta) {
+    bool dentro(double m) => b.indice > a.indice ? (m >= a.metros && m <= b.metros) : (m >= a.metros || m <= b.metros);
+    final r = <(Incidente, double)>[];
+    final vistos = <int>{};
+    for (final (inc, m) in zonasIncidente) {
+      if (inc.fin < desde || inc.inicio > hasta || !vistos.add(inc.id)) continue;
+      if (inc.esAccidente) {
+        if (dentro(m)) r.add((inc, inc.espera));
+      } else if (dentro(m) || dentro(m - inc.radio) || dentro(m + inc.radio)) {
+        r.add((inc, 2 * inc.radio / velocidadMs * (inc.factor - 1)));
+      }
+    }
+    return r;
+  }
+
+  /// Tráfico y accidentes sobre esta ruta en el segundo [t], con su retraso aproximado.
+  List<(Incidente, double)> incidentesAhora(double t) {
+    final r = <(Incidente, double)>[];
+    final vistos = <int>{};
+    for (final (inc, _) in zonasIncidente) {
+      if (!inc.activo(t) || !vistos.add(inc.id)) continue;
+      r.add((inc, inc.esAccidente ? inc.espera : 2 * inc.radio / velocidadMs * (inc.factor - 1)));
+    }
     return r;
   }
 

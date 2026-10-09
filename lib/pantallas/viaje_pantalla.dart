@@ -518,6 +518,10 @@ class TarjetaOpcion extends StatelessWidget {
         SecuenciaTramos(opcion: o),
         const SizedBox(height: 8),
         BarraTiempo(opcion: o),
+        // Tráfico o accidentes en el camino de la combi (ya contados en los tiempos)
+        for (final t in o.enCombi)
+          for (final (inc, r) in t.ruta!.incidentesEnViaje(t.sube!, t.baja!, t.inicio, t.fin).take(2))
+            GestureDetector(onTap: () => mostrarIncidente(context, inc), child: FilaIncidente(inc, r)),
         if (primera != null) ...[
           const SizedBox(height: 10),
           ConReloj(

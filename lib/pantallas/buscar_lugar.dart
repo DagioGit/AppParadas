@@ -3,6 +3,7 @@ import 'package:flutter/material.dart' show Icons;
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
+import '../datos/calles_osm.dart';
 import '../datos/lugares.dart';
 import '../modelo/ruta.dart';
 import '../modelo/ubicacion.dart';
@@ -20,10 +21,25 @@ String normalizar(String s) {
   return b.toString().toLowerCase().replaceAll('.', '').trim();
 }
 
-/// Lugares del catálogo más las paradas con nombre propio de todas las rutas.
-List<Lugar> todosLosLugares() {
+/// Clave para comparar nombres: sin acentos, en minúsculas y con las abreviaturas escritas completas
+/// ("Av. Lázaro Cárdenas" = "Avenida Lazaro Cardenas").
+String clave(String s) {
+  var t = ' ${normalizar(s).replaceAll(',', ' ')} ';
+  const abrev = {' av ': ' avenida ', ' blvd ': ' boulevard ', ' bulevar ': ' boulevard ', ' prol ': ' prolongacion ',
+    ' col ': ' colonia ', ' calz ': ' calzada ', ' fracc ': ' fraccionamiento ', ' gral ': ' general '};
+  abrev.forEach((a, b) => t = t.replaceAll(a, b));
+  return t.replaceAll(RegExp(r'\s+'), ' ').trim();
+}
+
+List<Lugar>? _cacheLugares;
+
+/// Lugares del catálogo, las paradas con nombre propio de todas las rutas y todas las calles,
+/// avenidas y colonias de Lázaro Cárdenas (OpenStreetMap), sin repetir.
+List<Lugar> todosLosLugares() => _cacheLugares ??= _juntarLugares();
+
+List<Lugar> _juntarLugares() {
   final l = <Lugar>[...lugares];
-  final vistos = <String>{for (final x in lugares) normalizar(x.nombre)};
+  final vistos = <String>{for (final x in lugares) clave(x.nombre)};
   for (final r in rutas) {
     for (final p in r.paradas.where((p) => p.principal)) {
       final nombre = p.nombre.replaceAll(' (regreso)', '');
@@ -33,7 +49,61 @@ List<Lugar> todosLosLugares() {
       }
     }
   }
+  for (final x in [...coloniasOsm, ...callesOsm]) {
+    if (vistos.add(clave(x.nombre))) l.add(x);
+  }
   return l;
+}
+
+/// Qué tan bien coincide [l] con lo que se escribió (más chico = mejor; null = no coincide).
+/// Como en los mapas: cada palabra escrita tiene que ser el principio de alguna palabra del lugar.
+int? puntaje(Lugar l, List<String> palabras, String completo) {
+  final n = clave(l.nombre);
+  final d = clave(l.detalle);
+  final pn = n.split(' ');
+  final pd = d.split(' ');
+  var enDetalle = 0;
+  for (final w in palabras) {
+    if (pn.any((x) => x.startsWith(w))) continue;
+    if (pd.any((x) => x.startsWith(w))) {
+      enDetalle++;
+      continue;
+    }
+    return null;
+  }
+  var p = 0;
+  if (n == completo) {
+    p = 0;
+  } else if (n.startsWith(completo)) {
+    p = 10;
+  } else if (n.contains(' $completo')) {
+    p = 20;
+  } else {
+    p = 30;
+  }
+  p += enDetalle * 15;
+  // Lugares importantes y avenidas primero; calles y colonias después
+  const orden = {
+    TipoLugar.lugar: 0, TipoLugar.parada: 1, TipoLugar.escuela: 1, TipoLugar.salud: 1, TipoLugar.compras: 1,
+    TipoLugar.colonia: 3, TipoLugar.avenida: 2, TipoLugar.ubicacion: 0, TipoLugar.mapa: 0,
+  };
+  p += orden[l.tipo] ?? 2;
+  if (l.tipo == TipoLugar.avenida && !l.detalle.startsWith('Avenida') && !l.detalle.startsWith('Bulevar') && l.detalle.contains('·')) p += 2;
+  return p;
+}
+
+/// Busca como en los mapas: sin acentos, en cualquier orden de palabras y lo más parecido primero.
+List<Lugar> buscarLugares(List<Lugar> todos, String texto, {int maximo = 40}) {
+  final completo = clave(texto);
+  if (completo.isEmpty) return const [];
+  final palabras = completo.split(' ').where((w) => w.isNotEmpty).toList();
+  final r = <(Lugar, int)>[];
+  for (final l in todos) {
+    final p = puntaje(l, palabras, completo);
+    if (p != null) r.add((l, p));
+  }
+  r.sort((a, b) => a.$2 != b.$2 ? a.$2.compareTo(b.$2) : a.$1.nombre.length.compareTo(b.$1.nombre.length));
+  return [for (final x in r.take(maximo)) x.$1];
 }
 
 IconData iconoLugar(TipoLugar t) {
@@ -147,8 +217,8 @@ class _BuscarLugarState extends State<BuscarLugar> {
     return CupertinoListTile(
       leading: IconoLugar(l.tipo),
       leadingSize: 34,
-      title: Text(l.nombre, style: Tema.texto(size: 16, weight: FontWeight.w500)),
-      subtitle: Text(l.detalle, style: Tema.chico),
+      title: Text(l.nombre, style: Tema.texto(size: 17, weight: FontWeight.w600)),
+      subtitle: Text(l.detalle, style: Tema.chico, maxLines: 1, overflow: TextOverflow.ellipsis),
       onTap: () => Navigator.of(context).pop(l),
     );
   }
@@ -156,9 +226,7 @@ class _BuscarLugarState extends State<BuscarLugar> {
   @override
   Widget build(BuildContext context) {
     final q = normalizar(_q);
-    final resultados = q.isEmpty
-        ? <Lugar>[]
-        : _todos.where((l) => normalizar('${l.nombre} ${l.detalle}').contains(q)).take(40).toList();
+    final resultados = q.isEmpty ? <Lugar>[] : buscarLugares(_todos, _q);
 
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(middle: Text(widget.titulo)),
@@ -168,7 +236,7 @@ class _BuscarLugarState extends State<BuscarLugar> {
             padding: const EdgeInsets.fromLTRB(16, 10, 16, 4),
             child: CupertinoSearchTextField(
               autofocus: true,
-              placeholder: 'Colonia, calle o lugar',
+              placeholder: 'Calle, avenida, colonia o lugar',
               onChanged: (v) => setState(() => _q = v),
             ),
           ),

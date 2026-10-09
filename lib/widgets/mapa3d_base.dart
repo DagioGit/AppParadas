@@ -38,6 +38,7 @@ Future<void> prepararEscena(ml.MapLibreMapController c) async {
   await c.addGeoJsonSource('combis-puntos', coleccion([]));
   await c.addGeoJsonSource('paradas-puntos', coleccion([]));
   await c.addGeoJsonSource('pines', coleccion([]));
+  await c.addGeoJsonSource('incidentes', coleccion([]));
   await c.addGeoJsonSource('etiquetas', coleccion([]));
 
   await c.addLineLayer(
@@ -54,6 +55,19 @@ Future<void> prepararEscena(ml.MapLibreMapController c) async {
     'viaje',
     'viaje-borde',
     ml.LineLayerProperties(lineColor: '#ffffff', lineWidth: ['+', ['get', 'ancho'], 4], lineOpacity: ['coalesce', ['get', 'opacidad'], 1], lineJoin: 'round', lineCap: 'round'),
+  );
+  // Calles con tráfico (naranja) o accidente (rojo), encima de las rutas
+  await c.addLineLayer(
+    'incidentes',
+    'trafico-borde',
+    ml.LineLayerProperties(lineColor: '#ffffff', lineWidth: 10, lineOpacity: 0.9, lineJoin: 'round', lineCap: 'round'),
+    filter: ['==', ['get', 'tipo'], 'trafico'],
+  );
+  await c.addLineLayer(
+    'incidentes',
+    'trafico-linea',
+    ml.LineLayerProperties(lineColor: ['get', 'color'], lineWidth: 7, lineOpacity: 0.9, lineJoin: 'round', lineCap: 'round'),
+    filter: ['==', ['get', 'tipo'], 'trafico'],
   );
   await c.addLineLayer(
     'viaje',
@@ -118,6 +132,17 @@ Future<void> prepararEscena(ml.MapLibreMapController c) async {
     'combis-punto',
     ml.CircleLayerProperties(circleRadius: ['get', 'radio'], circleColor: ['get', 'color'], circleStrokeColor: '#ffffff', circleStrokeWidth: 2.5),
     maxzoom: 16.2,
+  );
+  // Avisos de tráfico y accidente (íconos 2D)
+  try {
+    await c.addImage('trafico', await iconoAvisoPng(false));
+    await c.addImage('accidente', await iconoAvisoPng(true));
+  } catch (_) {}
+  await c.addSymbolLayer(
+    'incidentes',
+    'avisos',
+    ml.SymbolLayerProperties(iconImage: ['get', 'icono'], iconSize: 0.5, iconAllowOverlap: true, iconIgnorePlacement: true),
+    filter: ['==', ['get', 'tipo'], 'aviso'],
   );
   // Dónde estás y a dónde vas: íconos 2D (círculo con la flecha de Viaje y pin)
   try {
@@ -219,6 +244,37 @@ Future<Uint8List> iconoDestinoPng() async {
   c.drawPath(pin(28, 38, h - 14), ui.Paint()..color = const ui.Color(0xFFFF3B30));
   c.drawCircle(const ui.Offset(w / 2, 38), 11, ui.Paint()..color = const ui.Color(0xFFFFFFFF));
   return _png(g.endRecording(), w.toInt(), h.toInt());
+}
+
+/// Aviso 2D: triángulo naranja (tráfico) o rojo (accidente) con "!" blanco.
+Future<Uint8List> iconoAvisoPng(bool accidente) async {
+  const t = 76.0;
+  final g = ui.PictureRecorder();
+  final c = ui.Canvas(g);
+  ui.Path tri(double m) => ui.Path()
+    ..moveTo(t / 2, m)
+    ..lineTo(t - m, t - m * 0.8)
+    ..lineTo(m, t - m * 0.8)
+    ..close();
+  final redondo = ui.Paint()
+    ..strokeJoin = ui.StrokeJoin.round
+    ..strokeWidth = 10
+    ..style = ui.PaintingStyle.stroke;
+  c.drawPath(tri(8).shift(const ui.Offset(0, 2)), redondo..color = const ui.Color(0x40000000));
+  c.drawPath(tri(8), ui.Paint()..color = const ui.Color(0xFFFFFFFF));
+  c.drawPath(tri(8), redondo..color = const ui.Color(0xFFFFFFFF));
+  final color = accidente ? const ui.Color(0xFFFF3B30) : const ui.Color(0xFFFF9500);
+  final relleno = ui.Paint()..color = color;
+  c.drawPath(tri(15), relleno);
+  c.drawPath(tri(15), ui.Paint()
+    ..color = color
+    ..strokeJoin = ui.StrokeJoin.round
+    ..strokeWidth = 6
+    ..style = ui.PaintingStyle.stroke);
+  final blanco = ui.Paint()..color = const ui.Color(0xFFFFFFFF);
+  c.drawRRect(ui.RRect.fromRectAndRadius(const ui.Rect.fromLTWH(t / 2 - 4.5, 27, 9, 22), const ui.Radius.circular(4.5)), blanco);
+  c.drawCircle(const ui.Offset(t / 2, 57), 5, blanco);
+  return _png(g.endRecording(), t.toInt(), t.toInt());
 }
 
 /// Dibuja el ícono del semáforo (caja negra con luz roja, amarilla y verde y su poste) como PNG.

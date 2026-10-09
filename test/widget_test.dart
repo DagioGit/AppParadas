@@ -1,4 +1,5 @@
 import 'package:app_paradas/ajustes.dart';
+import 'package:app_paradas/datos/lugares.dart';
 import 'package:app_paradas/pantallas/ajustes_pantalla.dart';
 import 'package:app_paradas/pantallas/buscar_lugar.dart';
 import 'package:app_paradas/pantallas/rutas_pantalla.dart';
@@ -44,5 +45,13 @@ void main() {
     await tester.pump();
     expect(ajustes.negritas, isTrue);
     ajustes.restablecer();
+  });
+
+  test('El buscador encuentra avenidas y calles de Lázaro Cárdenas como en los mapas', () {
+    final todos = todosLosLugares();
+    expect(buscarLugares(todos, 'av lazaro').first.nombre, 'Av. Lázaro Cárdenas');
+    expect(buscarLugares(todos, 'avenida lázaro cárdenas').first.nombre, 'Av. Lázaro Cárdenas');
+    expect(buscarLugares(todos, 'mina').any((l) => l.nombre.contains('Mina')), isTrue);
+    expect(todos.where((l) => l.tipo == TipoLugar.avenida).length, greaterThan(500));
   });
 }

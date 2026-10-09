@@ -55,7 +55,7 @@ class _ParadasPantallaState extends State<ParadasPantalla> {
             ConReloj(
               cada: const Duration(seconds: 1),
               builder: (context, ahora) => Column(children: [
-                if (!enServicio(ahora)) const AvisoSinServicio(),
+                if (!enServicio(ahora)) const AvisoSinServicio() else AvisoIncidentes(r, ahora),
                 Tarjeta(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
                   child: Column(children: [
@@ -91,11 +91,13 @@ class _ParadasPantallaState extends State<ParadasPantalla> {
         children: [
           capaTeselas(),
           PolylineLayer(polylines: [lineaRuta(r.trazo.puntos, r.color, ancho: 6)]),
+          capaTrafico(),
           MarkerLayer(markers: [
             for (final p in paradas) marcadorParada(p, tam: 16, onTap: () => mostrarParada(context, p)),
             for (final s in semaforos) marcadorSemaforo(s, alto: 26, onTap: () => mostrarSemaforo(context, s)),
           ]),
           capaCombis([r], tam: 26, onTap: (c) => mostrarCombi(context, c)),
+          capaAvisos(context),
         ],
       ),
     );

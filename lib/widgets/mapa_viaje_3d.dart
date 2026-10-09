@@ -13,6 +13,7 @@ import '../datos/lugares.dart';
 import '../modelo/planificador.dart';
 import '../modelo/ruta.dart';
 import '../tema.dart';
+import '../modelo/incidentes.dart';
 import 'escena3d.dart';
 import 'hoja_parada.dart';
 import 'mapa3d_base.dart';
@@ -70,6 +71,7 @@ class _MapaViaje3DState extends State<MapaViaje3D> {
   bool _listo = false;
   bool _ocupado = false;
   Timer? _reloj;
+  String _firmaInc = '-';
 
   @override
   void initState() {
@@ -158,6 +160,7 @@ class _MapaViaje3DState extends State<MapaViaje3D> {
         ],
     ]));
     await c.setGeoJsonSource('pines', geoPines(widget.origen?.punto, widget.destino?.punto));
+    _firmaInc = '-';
     await c.setGeoJsonSource('pie', coleccion([
       for (var i = 0; i < widget.opciones.length; i++)
         for (final t in widget.opciones[i].tramos)
@@ -171,6 +174,12 @@ class _MapaViaje3DState extends State<MapaViaje3D> {
     final c = _c;
     if (c == null || !_listo) return;
     final ahora = segundosAhora();
+    // Tráfico y accidentes: sólo se vuelven a dibujar cuando cambian
+    final firma = incidentesEn(ahora).map((i) => i.id).join(',');
+    if (firma != _firmaInc) {
+      _firmaInc = firma;
+      await c.setGeoJsonSource('incidentes', geoIncidentes(ahora));
+    }
     final lineas = <Map<String, dynamic>>[];
     final combis = <Map<String, dynamic>>[];
     final puntos = <Map<String, dynamic>>[];

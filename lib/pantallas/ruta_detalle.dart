@@ -61,11 +61,13 @@ class _RutaDetalleState extends State<RutaDetalle> {
             children: [
               capaTeselas(),
               PolylineLayer(polylines: [lineaRuta(r.trazo.puntos, r.color, ancho: 5.5)]),
+              capaTrafico(),
               MarkerLayer(markers: [
                 for (final p in paradas) marcadorParada(p, tam: 15, onTap: () => mostrarParada(context, p)),
                 for (final sem in semaforos) marcadorSemaforo(sem, alto: 22, onTap: () => mostrarSemaforo(context, sem)),
               ]),
               capaCombis([r], onTap: (c) => mostrarCombi(context, c)),
+              capaAvisos(context),
             ],
           ),
         ),

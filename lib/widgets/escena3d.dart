@@ -10,6 +10,7 @@ import 'package:latlong2/latlong.dart';
 
 import '../datos/caseta_lzc.dart';
 import '../datos/semaforos.dart';
+import '../modelo/incidentes.dart';
 import '../modelo/planificador.dart';
 import '../modelo/ruta.dart';
 
@@ -163,6 +164,20 @@ Map<String, dynamic> geoSemaforos() => coleccion([
       for (var i = 0; i < semaforos.length; i++) punto(semaforos[i].punto, {'tipo': 'semaforo', 'ref': '$i'}),
     ]);
 
+// ---------------- Tráfico y accidentes ----------------
+
+/// Calles con tráfico (líneas) y avisos de tráfico / accidente (íconos 2D) en el segundo [ahora].
+Map<String, dynamic> geoIncidentes(double ahora) {
+  final f = <Map<String, dynamic>>[];
+  for (final inc in incidentesEn(ahora)) {
+    for (final l in lineasIncidente(inc)) {
+      f.add(linea(l, {'tipo': 'trafico', 'color': inc.esAccidente ? '#ff3b30' : '#ff9500'}));
+    }
+    f.add(punto(inc.punto, {'tipo': 'aviso', 'icono': inc.esAccidente ? 'accidente' : 'trafico'}));
+  }
+  return coleccion(f);
+}
+
 // ---------------- Combis ----------------
 
 /// Combi en 3D (exagerada): carrocería del color de la ruta, ventanas oscuras y techo blanco.
@@ -183,6 +198,7 @@ List<Map<String, dynamic>> combi3d(Ruta r, LatLng p, double rumbo, String ref, {
 String? techoSegun(CombiEnRuta c) {
   final p = c.pausa;
   if (p == null) return null;
+  if (p.incidente != null) return '#ff9500';
   return p.parada != null ? '#34c759' : '#ff3b30';
 }
 

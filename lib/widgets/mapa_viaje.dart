@@ -119,6 +119,8 @@ class _MapaViajeState extends State<MapaViaje> {
               },
               child: PolylineLayer<Opcion>(hitNotifier: _golpe, polylines: lineas),
             ),
+            capaTrafico(),
+            capaAvisos(context),
             MarkerLayer(markers: [
               for (final sem in semaforos) marcadorSemaforo(sem, alto: 22, onTap: () => mostrarSemaforo(context, sem)),
               // En las otras opciones, sólo el número de la ruta donde se sube
