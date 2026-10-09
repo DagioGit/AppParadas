@@ -5,28 +5,39 @@
 import fs from "fs";
 
 const CAJA = "17.90,-102.27,18.02,-102.13"; // sur, oeste, norte, este
-const SERVIDORES = ["https://overpass-api.de/api/interpreter", "https://overpass.kumi.systems/api/interpreter", "https://overpass.private.coffee/api/interpreter"];
+const SERVIDORES = [
+  "https://overpass-api.de/api/interpreter",
+  "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
+  "https://overpass.kumi.systems/api/interpreter",
+  "https://overpass.private.coffee/api/interpreter",
+  "https://overpass.osm.jp/api/interpreter"
+];
 const espera = ms => new Promise(r => setTimeout(r, ms));
 
-const q = `[out:json][timeout:120];
-node["highway"="traffic_signals"](${CAJA})->.s;
-.s out;
-way(bn.s)["highway"]["name"];
-out body;`;
-
-let datos = null;
-for (let intento = 0; intento < 9 && !datos; intento++) {
-  const url = SERVIDORES[intento % SERVIDORES.length];
-  try {
-    const r = await fetch(url, { method: "POST", body: "data=" + encodeURIComponent(q), headers: { "Content-Type": "application/x-www-form-urlencoded", "Accept": "application/json", "User-Agent": "CombiLZC/1.0 (proyecto escolar, github.com/DagioGit/AppParadas)" } });
-    if (!r.ok) throw new Error(r.status + " " + (await r.text()).slice(0, 200));
-    datos = await r.json();
-  } catch (e) {
-    console.log("Overpass falló", url, e.message);
-    await espera(15000);
+async function overpass(q, intentos = 10) {
+  for (let i = 0; i < intentos; i++) {
+    const url = SERVIDORES[i % SERVIDORES.length];
+    try {
+      const r = await fetch(url + "?data=" + encodeURIComponent(q), {
+        headers: { "Accept": "application/json", "User-Agent": "CombiLZC/1.0 (proyecto escolar, github.com/DagioGit/AppParadas)" }
+      });
+      if (!r.ok) throw new Error(String(r.status));
+      return await r.json();
+    } catch (e) {
+      console.log("Overpass falló", url, e.message);
+      await espera(10000);
+    }
   }
+  return null;
 }
+
+// 1) los semáforos (consulta ligera)
+const datos = await overpass(`[out:json][timeout:60];node["highway"="traffic_signals"](${CAJA});out;`);
 if (!datos) throw new Error("No se pudo descargar de Overpass");
+// 2) las calles que pasan por cada semáforo, para ponerles nombre (si falla, se quedan sin nombre)
+const ids = datos.elements.map(e => e.id);
+const calles = ids.length ? await overpass(`[out:json][timeout:90];node(id:${ids.join(",")})->.s;way(bn.s)["highway"]["name"];out body;`, 6) : null;
+if (calles) datos.elements.push(...calles.elements);
 
 const nodos = datos.elements.filter(e => e.type === "node");
 const vias = datos.elements.filter(e => e.type === "way");
