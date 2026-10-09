@@ -1,13 +1,19 @@
+import 'package:app_paradas/ajustes.dart';
+import 'package:app_paradas/pantallas/ajustes_pantalla.dart';
 import 'package:app_paradas/pantallas/buscar_lugar.dart';
 import 'package:app_paradas/pantallas/rutas_pantalla.dart';
 import 'package:app_paradas/tema.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 Widget _app(Widget home) => CupertinoApp(theme: Tema.cupertino, home: home);
 
 void main() {
-  setUp(() => Tema.usarFuenteWeb = false);
+  setUp(() {
+    Tema.usarFuenteWeb = false;
+    SharedPreferences.setMockInitialValues({});
+  });
 
   testWidgets('La lista de rutas muestra la Ruta 1 y la Ruta 2', (tester) async {
     await tester.pumpWidget(_app(const RutasPantalla()));
@@ -22,5 +28,21 @@ void main() {
     await tester.enterText(find.byType(CupertinoSearchTextField), 'gomez sada');
     await tester.pump();
     expect(find.text('Napoleón Gómez Sada'), findsOneWidget);
+  });
+
+  testWidgets('Ajustes cambia el tamaño de letra y las negritas', (tester) async {
+    await tester.pumpWidget(_app(const AjustesPantalla()));
+    await tester.pump();
+    expect(find.text('Tamaño de letra'), findsOneWidget);
+    final antes = Tema.texto().fontSize!;
+    ajustes.cambiar((a) => a.letra = Ajustes.tamanos.last);
+    expect(Tema.texto().fontSize!, greaterThan(antes));
+    await tester.pump();
+    await tester.ensureVisible(find.text('Letra en negritas'));
+    await tester.pump();
+    await tester.tap(find.text('Letra en negritas'));
+    await tester.pump();
+    expect(ajustes.negritas, isTrue);
+    ajustes.restablecer();
   });
 }

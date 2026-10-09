@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 
 import 'package:latlong2/latlong.dart';
 
+import '../ajustes.dart';
 import '../datos/lugares.dart';
 import '../estado.dart';
 import '../modelo/geo.dart';
@@ -162,7 +163,7 @@ class _ViajePantallaState extends State<ViajePantalla> {
 
   /// Primer toque: dónde estás. Segundo toque: a dónde vas. Un tercero empieza otro viaje.
   void _tocarMapa(LatLng p) {
-    HapticFeedback.selectionClick();
+    if (ajustes.vibrar) HapticFeedback.selectionClick();
     setState(() {
       if (_desde == null) {
         _desde = Lugar(_nombreCerca(p, 'Tu punto'), 'Marcado en el mapa', TipoLugar.mapa, p);
@@ -189,7 +190,7 @@ class _ViajePantallaState extends State<ViajePantalla> {
     void avisar(String clave, String texto) {
       if (_avisados.contains(clave)) return;
       _avisados.add(clave);
-      HapticFeedback.heavyImpact();
+      if (ajustes.vibrar) HapticFeedback.heavyImpact();
       setState(() => _banner = texto);
     }
 
@@ -279,7 +280,7 @@ class _ViajePantallaState extends State<ViajePantalla> {
                   const Icon(Icons.notifications_active_rounded, color: Tema.amarillo),
                   const SizedBox(width: 10),
                   Expanded(child: Text(_banner!, style: Tema.texto(size: 18, weight: FontWeight.w700, color: const Color(0xFFFFFFFF)))),
-                  const Icon(Icons.close_rounded, color: Tema.grisClaro, size: 18),
+                  Icon(Icons.close_rounded, color: Tema.grisClaro, size: 18),
                 ]),
               ),
             ),
@@ -327,7 +328,7 @@ class _ViajePantallaState extends State<ViajePantalla> {
                 child: Row(children: [
                   Expanded(
                     child: CupertinoButton(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      padding: EdgeInsets.symmetric(vertical: Tema.b(14)),
                       color: _alerta ? Tema.verde : Tema.tarjeta,
                       borderRadius: BorderRadius.circular(12),
                       onPressed: () => setState(() {
@@ -347,12 +348,12 @@ class _ViajePantallaState extends State<ViajePantalla> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: CupertinoButton(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      padding: EdgeInsets.symmetric(vertical: Tema.b(14)),
                       color: Tema.tarjeta,
                       borderRadius: BorderRadius.circular(12),
                       onPressed: () => _copiar(ops[_sel.clamp(0, ops.length - 1)]),
                       child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                        const Icon(Icons.ios_share_rounded, size: 22, color: Tema.tinta),
+                        Icon(Icons.ios_share_rounded, size: 22, color: Tema.tinta),
                         const SizedBox(width: 6),
                         Text('Compartir', style: Tema.texto(size: 17, weight: FontWeight.w700)),
                       ]),
@@ -439,7 +440,7 @@ class TarjetaOpcion extends StatelessWidget {
     return Tarjeta(
       onTap: onTap,
       padding: const EdgeInsets.all(16),
-      color: o.masRapida ? const Color(0xFFFFFFFF) : Tema.tarjeta,
+      color: Tema.tarjeta,
       borde: elegida ? Tema.tinta : null,
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         if (o.masRapida)
@@ -448,7 +449,7 @@ class TarjetaOpcion extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
             decoration: BoxDecoration(color: Tema.verdeClaro, borderRadius: BorderRadius.circular(8)),
             child: Row(mainAxisSize: MainAxisSize.min, children: [
-              const Icon(Icons.bolt_rounded, size: 20, color: Tema.verde),
+              Icon(Icons.bolt_rounded, size: 20, color: Tema.verde),
               const SizedBox(width: 3),
               Text('La más rápida', style: Tema.texto(size: 16, weight: FontWeight.w800, color: Tema.verde)),
             ]),
@@ -461,7 +462,7 @@ class TarjetaOpcion extends StatelessWidget {
             child: Text('llegas ${hora(o.llegada)}', style: Tema.texto(size: 18, color: Tema.gris)),
           ),
           const Spacer(),
-          const Padding(
+          Padding(
             padding: EdgeInsets.only(bottom: 6),
             child: Icon(CupertinoIcons.chevron_right, color: Tema.grisClaro, size: 20),
           ),
@@ -503,14 +504,14 @@ class SecuenciaTramos extends StatelessWidget {
     for (final t in opcion.tramos) {
       if (t.tipo == TipoTramo.pie && t.segundos < 30 && opcion.tramos.length > 1) continue;
       if (piezas.isNotEmpty) {
-        piezas.add(const Padding(
+        piezas.add(Padding(
           padding: EdgeInsets.symmetric(horizontal: 4),
           child: Icon(CupertinoIcons.chevron_right, size: 13, color: Tema.grisClaro),
         ));
       }
       if (t.tipo == TipoTramo.pie) {
         piezas.add(Row(mainAxisSize: MainAxisSize.min, children: [
-          const Icon(Icons.directions_walk_rounded, size: 20, color: Tema.gris),
+          Icon(Icons.directions_walk_rounded, size: 20, color: Tema.gris),
           Text('${(t.segundos / 60).round()}', style: Tema.texto(size: 13, weight: FontWeight.w600, color: Tema.gris)),
         ]));
       } else {
@@ -542,7 +543,7 @@ class BarraTiempo extends StatelessWidget {
       if (t.tipo == TipoTramo.pie) {
         if (t.segundos >= 20) partes.add((t.segundos.round(), Tema.grisClaro));
       } else {
-        if (t.espera >= 20) partes.add((t.espera.round(), const Color(0xFFE5E5EA)));
+        if (t.espera >= 20) partes.add((t.espera.round(), Tema.relleno));
         partes.add((t.segundos.round(), t.ruta!.color));
       }
     }

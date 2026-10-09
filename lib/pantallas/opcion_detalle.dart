@@ -135,11 +135,11 @@ class _Paso extends StatelessWidget {
 
 class _Fila extends StatelessWidget {
   final IconData? icono;
-  final Color color;
+  final Color? color;
   final Widget? insignia;
   final String titulo;
   final String detalle;
-  const _Fila({this.icono, this.color = Tema.gris, this.insignia, required this.titulo, required this.detalle});
+  const _Fila({this.icono, this.color, this.insignia, required this.titulo, required this.detalle});
 
   @override
   Widget build(BuildContext context) {
@@ -148,7 +148,7 @@ class _Fila extends StatelessWidget {
       child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
         SizedBox(
           width: 34,
-          child: insignia ?? Icon(icono, color: color, size: 26),
+          child: insignia ?? Icon(icono, color: color ?? Tema.gris, size: 26),
         ),
         const SizedBox(width: 10),
         Expanded(

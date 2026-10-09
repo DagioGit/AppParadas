@@ -263,7 +263,7 @@ class _ElegirEnMapaState extends State<ElegirEnMapa> {
           right: 16,
           bottom: MediaQuery.of(context).padding.bottom + 20,
           child: CupertinoButton(
-            color: Tema.tinta,
+            color: Tema.azul,
             borderRadius: BorderRadius.circular(14),
             onPressed: () {
               final LatLng c = _mapa.camera.center;

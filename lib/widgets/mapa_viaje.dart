@@ -82,7 +82,7 @@ class _MapaViajeState extends State<MapaViaje> {
       if (principal != null)
         for (final t in principal.tramos)
           if (t.tipo == TipoTramo.pie)
-            Polyline<Opcion>(points: t.puntos, color: Tema.gris, strokeWidth: 3, hitValue: principal)
+            Polyline<Opcion>(points: t.puntos, color: Tema.grisFijo, strokeWidth: 3, hitValue: principal)
           else
             Polyline<Opcion>(
               points: t.puntos,
@@ -98,7 +98,7 @@ class _MapaViajeState extends State<MapaViaje> {
       height: widget.alto,
       margin: const EdgeInsets.fromLTRB(16, 10, 16, 4),
       clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(borderRadius: BorderRadius.circular(18), color: Tema.fondo),
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(18), color: Tema.fondoFijo),
       child: Stack(children: [
         FlutterMap(
           key: ValueKey(Object.hashAll([widget.origen.punto, widget.destino.punto, widget.opciones.length])),
@@ -162,7 +162,7 @@ class _MapaViajeState extends State<MapaViaje> {
                           ? 'Pasa aquí · ${faltaTexto(combis[i].inicio, ahora)}'
                           : 'Cambia a la ${combis[i].ruta!.numero} · ${faltaTexto(combis[i].inicio, ahora)}',
                       color: combis[i].ruta!.color,
-                      letra: combis[i].ruta!.color.computeLuminance() > 0.5 ? Tema.tinta : const Color(0xFFFFFFFF),
+                      letra: combis[i].ruta!.color.computeLuminance() > 0.5 ? Tema.negro : const Color(0xFFFFFFFF),
                       ancho: 190,
                       onTap: () => widget.onTapOpcion(principal),
                     ),
@@ -171,7 +171,7 @@ class _MapaViajeState extends State<MapaViaje> {
                     marcadorEtiqueta(
                       combis.last.baja!.punto,
                       'Bájate aquí · ${hora(combis.last.fin)}',
-                      color: Tema.tinta,
+                      color: Tema.negro,
                       ancho: 170,
                       onTap: () => widget.onTapOpcion(principal),
                     ),
@@ -192,12 +192,12 @@ class _MapaViajeState extends State<MapaViaje> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     decoration: BoxDecoration(
-                      color: principal.masRapida ? Tema.verdeClaro : Tema.tarjeta,
+                      color: principal.masRapida ? Tema.verdeClaroFijo : Tema.blanco,
                       borderRadius: BorderRadius.circular(10),
                       boxShadow: Tema.sombra,
                     ),
                     child: Row(mainAxisSize: MainAxisSize.min, children: [
-                      Icon(principal.masRapida ? Icons.bolt_rounded : Icons.directions_rounded, size: 17, color: principal.masRapida ? Tema.verde : Tema.tinta),
+                      Icon(principal.masRapida ? Icons.bolt_rounded : Icons.directions_rounded, size: 17, color: principal.masRapida ? Tema.verdeFijo : Tema.negro),
                       const SizedBox(width: 4),
                       Flexible(
                         child: Text(
@@ -205,7 +205,7 @@ class _MapaViajeState extends State<MapaViaje> {
                           '${principal.soloAPie ? 'a pie' : principal.enCombi.map((t) => 'R${t.ruta!.numero}').join(' + ')}',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: Tema.texto(size: 13, weight: FontWeight.w700, color: principal.masRapida ? Tema.verde : Tema.tinta),
+                          style: Tema.textoFijo(size: 13, weight: FontWeight.w700, color: principal.masRapida ? Tema.verdeFijo : Tema.negro),
                         ),
                       ),
                     ]),

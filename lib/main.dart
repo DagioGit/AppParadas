@@ -4,9 +4,11 @@ import 'package:flutter/gestures.dart' show PointerDeviceKind;
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
+import 'ajustes.dart';
 import 'datos/lugares.dart';
 import 'estado.dart';
 import 'modelo/ruta.dart';
+import 'pantallas/ajustes_pantalla.dart';
 import 'pantallas/buscar_lugar.dart';
 import 'pantallas/parada_3d.dart';
 import 'pantallas/paradas_pantalla.dart';
@@ -14,14 +16,63 @@ import 'pantallas/rutas_pantalla.dart';
 import 'pantallas/viaje_pantalla.dart';
 import 'tema.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark);
+  await ajustes.cargar();
+  // Para revisar el diseño desde la web: ?tema=oscuro, ?letra=1.45, ?botones=grandes
+  final q = Uri.base.queryParameters;
+  if (q['tema'] == 'oscuro') ajustes.apariencia = 2;
+  if (q['tema'] == 'claro') ajustes.apariencia = 1;
+  final letra = double.tryParse(q['letra'] ?? '');
+  if (letra != null) ajustes.letra = letra;
+  if (q['botones'] == 'grandes') ajustes.botonesGrandes = true;
   runApp(const AppParadas());
 }
 
-class AppParadas extends StatelessWidget {
+class AppParadas extends StatefulWidget {
   const AppParadas({super.key});
+
+  @override
+  State<AppParadas> createState() => _AppParadasState();
+}
+
+class _AppParadasState extends State<AppParadas> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    ajustes.addListener(_alCambiar);
+    _aplicar();
+  }
+
+  @override
+  void dispose() {
+    ajustes.removeListener(_alCambiar);
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangePlatformBrightness() => _alCambiar();
+
+  /// Decide si va en modo oscuro y ajusta la barra de estado del teléfono.
+  void _aplicar() {
+    final sistema = WidgetsBinding.instance.platformDispatcher.platformBrightness;
+    Tema.oscuro = ajustes.apariencia == 2 || (ajustes.apariencia == 0 && sistema == Brightness.dark);
+    SystemChrome.setSystemUIOverlayStyle(Tema.oscuro ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark);
+  }
+
+  /// Los colores y letras se leen al dibujar, así que se vuelve a dibujar todo.
+  void _alCambiar() {
+    if (!mounted) return;
+    setState(_aplicar);
+    void marcar(Element e) {
+      e.markNeedsBuild();
+      e.visitChildren(marcar);
+    }
+
+    (context as Element).visitChildren(marcar);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -61,6 +112,7 @@ void leerEnlace() {
   final tab = q['tab'];
   if (tab == 'paradas') pestanas.index = 1;
   if (tab == 'rutas') pestanas.index = 2;
+  if (tab == 'ajustes') pestanas.index = 3;
 }
 
 class Inicio extends StatefulWidget {
@@ -95,12 +147,16 @@ class _InicioState extends State<Inicio> {
     return CupertinoTabScaffold(
       controller: pestanas,
       tabBar: CupertinoTabBar(
-        activeColor: Tema.tinta,
-        inactiveColor: Tema.grisClaro,
+        activeColor: Tema.azul,
+        inactiveColor: Tema.gris,
+        backgroundColor: Tema.oscuro ? const Color(0xF0161618) : const Color(0xF0F9F9F9),
+        iconSize: Tema.b(30).clamp(30.0, 38.0),
+        height: Tema.b(50).clamp(50.0, 60.0),
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.near_me_rounded), label: 'Viaje'),
           BottomNavigationBarItem(icon: Icon(Icons.place_rounded), label: 'Paradas'),
           BottomNavigationBarItem(icon: Icon(Icons.directions_bus_rounded), label: 'Rutas'),
+          BottomNavigationBarItem(icon: Icon(CupertinoIcons.gear_alt_fill), label: 'Ajustes'),
         ],
       ),
       tabBuilder: (context, i) {
@@ -110,8 +166,10 @@ class _InicioState extends State<Inicio> {
               return const ViajePantalla();
             case 1:
               return const ParadasPantalla();
-            default:
+            case 2:
               return const RutasPantalla();
+            default:
+              return const AjustesPantalla();
           }
         });
       },

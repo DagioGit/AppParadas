@@ -33,6 +33,11 @@ const tomas = [
   ["4-viaje-tec-malecon", "?tab=viaje&desde=instituto%20tecnologico&hasta=malecon%20de%20la%20cultura"],
   ["5-opcion", "?desde=gomez%20sada&hasta=av%20lazaro%20cardenas&detalle=1"],
   ["8-paradas", "?tab=paradas"],
+  ["10-ajustes", "?tab=ajustes"],
+  ["11-ajustes-oscuro", "?tab=ajustes&tema=oscuro"],
+  ["12-paradas-oscuro", "?tab=paradas&tema=oscuro&letra=1.3"],
+  ["13-rutas-oscuro", "?tab=rutas&tema=oscuro"],
+  ["14-viaje-oscuro", "?tab=viaje&tema=oscuro&desde=malecon%20de%20la%20cultura&hasta=gomez%20sada"],
 ];
 for (const [nombre, q] of tomas) {
   await pagina.goto("http://localhost:8099" + BASE + q, { waitUntil: "load" });

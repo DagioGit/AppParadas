@@ -159,7 +159,7 @@ class _FilaParada extends StatelessWidget {
                 width: 14,
                 height: 14,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFFFFFF),
+                  color: Tema.tarjeta,
                   shape: BoxShape.circle,
                   border: Border.all(color: color, width: 3.5),
                 ),

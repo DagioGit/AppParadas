@@ -24,7 +24,7 @@ class InsigniaRuta extends StatelessWidget {
       decoration: BoxDecoration(color: ruta.color, borderRadius: BorderRadius.circular(tam * 0.28)),
       child: Text(
         '${ruta.numero}',
-        style: Tema.texto(size: tam * 0.5, weight: FontWeight.w800, color: claro ? Tema.tinta : const Color(0xFFFFFFFF)),
+        style: Tema.texto(size: tam * 0.5, weight: FontWeight.w800, color: claro ? Tema.negro : Tema.blanco, fijo: true),
       ),
     );
   }
@@ -45,7 +45,7 @@ class PildoraRuta extends StatelessWidget {
         duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.fromLTRB(5, 5, 12, 5),
         decoration: BoxDecoration(
-          color: activa ? Tema.tarjeta : const Color(0xCCFFFFFF),
+          color: Tema.tarjeta,
           borderRadius: BorderRadius.circular(20),
           boxShadow: Tema.sombra,
         ),
@@ -68,7 +68,7 @@ class Tarjeta extends StatelessWidget {
   final EdgeInsets padding;
   final EdgeInsets margin;
   final VoidCallback? onTap;
-  final Color color;
+  final Color? color;
   final Color? borde;
   const Tarjeta({
     super.key,
@@ -76,7 +76,7 @@ class Tarjeta extends StatelessWidget {
     this.padding = const EdgeInsets.all(16),
     this.margin = const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
     this.onTap,
-    this.color = Tema.tarjeta,
+    this.color,
     this.borde,
   });
 
@@ -86,8 +86,8 @@ class Tarjeta extends StatelessWidget {
       margin: margin,
       padding: padding,
       decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(16),
+        color: color ?? Tema.tarjeta,
+        borderRadius: BorderRadius.circular(20),
         border: borde == null ? null : Border.all(color: borde!, width: 2),
       ),
       child: child,
@@ -130,7 +130,7 @@ TileLayer capaTeselas() => TileLayer(
     );
 
 Widget creditosMapa() => SimpleAttributionWidget(
-      source: Text('© colaboradores de OpenStreetMap', style: Tema.texto(size: 11, color: Tema.gris)),
+      source: Text('© colaboradores de OpenStreetMap', style: Tema.texto(size: 11, color: Tema.grisFijo, fijo: true)),
       backgroundColor: const Color(0xB3FFFFFF),
     );
 
@@ -144,7 +144,7 @@ Polyline lineaRuta(List<LatLng> puntos, Color color, {double ancho = 5, bool ten
 
 Polyline lineaPie(List<LatLng> puntos) => Polyline(
       points: puntos,
-      color: Tema.gris,
+      color: Tema.grisFijo,
       strokeWidth: 3,
     );
 
@@ -271,7 +271,7 @@ Widget iconoCombi(Ruta r, {double tam = 26, bool resaltada = false}) {
         BoxShadow(color: resaltada ? r.color.withValues(alpha: 0.6) : const Color(0x55000000), blurRadius: resaltada ? 10 : 4, spreadRadius: resaltada ? 2 : 0),
       ],
     ),
-    child: Icon(Icons.directions_bus_rounded, size: tam * 0.62, color: claro ? Tema.tinta : const Color(0xFFFFFFFF)),
+    child: Icon(Icons.directions_bus_rounded, size: tam * 0.62, color: claro ? Tema.negro : Tema.blanco),
   );
 }
 
@@ -324,7 +324,7 @@ Marker marcadorSemaforo(Semaforo s, {VoidCallback? onTap, double alto = 28}) => 
     );
 
 /// Etiqueta tipo globo sobre el mapa ("Pasa aquí · 7 min", "Bájate aquí").
-Marker marcadorEtiqueta(LatLng p, String texto, {Color color = Tema.tinta, Color letra = const Color(0xFFFFFFFF), VoidCallback? onTap, double ancho = 150}) => Marker(
+Marker marcadorEtiqueta(LatLng p, String texto, {Color color = Tema.negro, Color letra = Tema.blanco, VoidCallback? onTap, double ancho = 150}) => Marker(
       point: p,
       width: ancho,
       height: 64,
@@ -339,7 +339,7 @@ Marker marcadorEtiqueta(LatLng p, String texto, {Color color = Tema.tinta, Color
               borderRadius: BorderRadius.circular(10),
               boxShadow: const [BoxShadow(color: Color(0x40000000), blurRadius: 6, offset: Offset(0, 2))],
             ),
-            child: Text(texto, maxLines: 1, overflow: TextOverflow.ellipsis, style: Tema.texto(size: 12.5, weight: FontWeight.w700, color: letra)),
+            child: Text(texto, maxLines: 1, overflow: TextOverflow.ellipsis, style: Tema.texto(size: 12.5, weight: FontWeight.w700, color: letra, fijo: true)),
           ),
           CustomPaint(size: const Size(12, 7), painter: _Pico(color)),
         ]),
@@ -430,7 +430,7 @@ class HojaDeslizable extends StatelessWidget {
       snap: true,
       snapSizes: [inicial],
       builder: (context, sc) => Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           color: Tema.fondo,
           borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
           boxShadow: [BoxShadow(color: Color(0x26000000), blurRadius: 20, offset: Offset(0, -4))],

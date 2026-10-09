@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 
 import 'datos/lugares.dart';
 
-/// Pestañas: 0 Viaje, 1 Paradas, 2 Rutas.
+/// Pestañas: 0 Viaje, 1 Paradas, 2 Rutas, 3 Ajustes.
 final CupertinoTabController pestanas = CupertinoTabController();
 
 /// Cuando otra pantalla quiere planear un viaje hacia un lugar (por ejemplo, "Ir aquí" en una parada).

@@ -63,7 +63,7 @@ class _HojaParadaState extends State<HojaParada> {
     }
 
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: Tema.fondo,
         borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
       ),
@@ -93,7 +93,7 @@ class _HojaParadaState extends State<HojaParada> {
                 padding: EdgeInsets.zero,
                 minimumSize: const Size(32, 32),
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Icon(Icons.close_rounded, color: Tema.gris, size: 30),
+                child: Icon(Icons.close_rounded, color: Tema.gris, size: 30),
               ),
             ]),
           ),
@@ -105,7 +105,7 @@ class _HojaParadaState extends State<HojaParada> {
                 Container(
                   padding: const EdgeInsets.symmetric(vertical: 13),
                   decoration: BoxDecoration(
-                    border: i == 0 ? null : const Border(top: BorderSide(color: Tema.linea, width: 0.5)),
+                    border: i == 0 ? null : Border(top: BorderSide(color: Tema.linea, width: 0.5)),
                   ),
                   child: Row(children: [
                     Icon(Icons.directions_bus_rounded, color: r.color, size: 28),
@@ -145,7 +145,7 @@ class _HojaParadaState extends State<HojaParada> {
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
             child: CupertinoButton(
               color: Tema.amarillo,
-              padding: const EdgeInsets.symmetric(vertical: 18),
+              padding: EdgeInsets.symmetric(vertical: Tema.b(18)),
               borderRadius: BorderRadius.circular(14),
               onPressed: () {
                 final nav = Navigator.of(context);
@@ -153,9 +153,9 @@ class _HojaParadaState extends State<HojaParada> {
                 nav.push(CupertinoPageRoute<void>(builder: (_) => Parada3D(parada: p)));
               },
               child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                const Icon(Icons.view_in_ar_rounded, color: Tema.tinta, size: 28),
+                const Icon(Icons.view_in_ar_rounded, color: Tema.negro, size: 28),
                 const SizedBox(width: 8),
-                Text('Ver en 3D', style: Tema.texto(size: 20, weight: FontWeight.w800)),
+                Text('Ver en 3D', style: Tema.texto(size: 20, weight: FontWeight.w800, color: Tema.negro)),
               ]),
             ),
           ),
@@ -165,7 +165,7 @@ class _HojaParadaState extends State<HojaParada> {
               Expanded(
                 child: CupertinoButton(
                   color: Tema.tarjeta,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  padding: EdgeInsets.symmetric(vertical: Tema.b(16)),
                   borderRadius: BorderRadius.circular(14),
                   onPressed: () {
                     final nav = Navigator.of(context);
@@ -178,8 +178,8 @@ class _HojaParadaState extends State<HojaParada> {
               const SizedBox(width: 10),
               Expanded(
                 child: CupertinoButton(
-                  color: Tema.tinta,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  color: Tema.azul,
+                  padding: EdgeInsets.symmetric(vertical: Tema.b(16)),
                   borderRadius: BorderRadius.circular(14),
                   onPressed: () {
                     Navigator.of(context).pop();

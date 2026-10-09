@@ -73,20 +73,20 @@ class _ParadaVisorWeb extends StatelessWidget {
               child: Container(
                 width: 42,
                 height: 42,
-                decoration: BoxDecoration(color: Tema.tarjeta, shape: BoxShape.circle, boxShadow: Tema.sombra),
-                child: const Icon(CupertinoIcons.back, color: Tema.tinta, size: 22),
+                decoration: BoxDecoration(color: Tema.blanco, shape: BoxShape.circle, boxShadow: Tema.sombra),
+                child: const Icon(CupertinoIcons.back, color: Tema.negro, size: 22),
               ),
             ),
             const SizedBox(width: 10),
             Flexible(
               child: Container(
                 padding: const EdgeInsets.fromLTRB(6, 6, 14, 6),
-                decoration: BoxDecoration(color: Tema.tarjeta, borderRadius: BorderRadius.circular(21), boxShadow: Tema.sombra),
+                decoration: BoxDecoration(color: Tema.blanco, borderRadius: BorderRadius.circular(21), boxShadow: Tema.sombra),
                 child: Row(mainAxisSize: MainAxisSize.min, children: [
                   InsigniaRuta(r, tam: 28),
                   const SizedBox(width: 8),
                   Flexible(
-                    child: Text(p.nombre, maxLines: 1, overflow: TextOverflow.ellipsis, style: Tema.texto(size: 16, weight: FontWeight.w700)),
+                    child: Text(p.nombre, maxLines: 1, overflow: TextOverflow.ellipsis, style: Tema.textoFijo(size: 16, weight: FontWeight.w700)),
                   ),
                 ]),
               ),
@@ -113,7 +113,7 @@ class _ParadaVisorWeb extends StatelessWidget {
                         : falta < 3600
                             ? 'Próxima combi en ${(falta / 60).floor()}:${(falta % 60).floor().toString().padLeft(2, '0')} · ${hora(llegada)}'
                             : 'Próxima combi a las ${hora(llegada)}',
-                    style: Tema.texto(size: 15, weight: FontWeight.w700, color: Tema.amarillo),
+                    style: Tema.textoFijo(size: 15, weight: FontWeight.w700, color: Tema.amarillo),
                   ),
                 );
               },
@@ -198,7 +198,7 @@ class _Parada3DState extends State<_Parada3DMapa> {
     }
     final (llegada, donde, faltan) = _proxima(ahora);
     final etiquetas = <Map<String, dynamic>>[
-      etiqueta(p.punto, enParada ? 'Combi en la parada' : 'Próxima combi ${_texto(llegada - ahora)}', enParada ? Tema.verde : Tema.tinta, prioridad: 0),
+      etiqueta(p.punto, enParada ? 'Combi en la parada' : 'Próxima combi ${_texto(llegada - ahora)}', enParada ? Tema.verdeFijo : Tema.negro, prioridad: 0),
       if (donde != null && !enParada)
         etiqueta(donde, 'Viene a ${(faltan / 1000).toStringAsFixed(1)} km', r.color.computeLuminance() > 0.6 ? const Color(0xFF8A6D00) : r.color, prioridad: 1),
     ];
@@ -276,7 +276,7 @@ class _Parada3DState extends State<_Parada3DMapa> {
           top: arriba + 8,
           child: Container(
             padding: const EdgeInsets.fromLTRB(4, 6, 12, 6),
-            decoration: BoxDecoration(color: Tema.tarjeta, borderRadius: BorderRadius.circular(16), boxShadow: Tema.sombra),
+            decoration: BoxDecoration(color: Tema.blanco, borderRadius: BorderRadius.circular(16), boxShadow: Tema.sombra),
             child: Row(children: [
               CupertinoButton(
                 padding: const EdgeInsets.all(6),
@@ -287,8 +287,8 @@ class _Parada3DState extends State<_Parada3DMapa> {
               const SizedBox(width: 10),
               Expanded(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-                  Text(p.nombre, maxLines: 1, overflow: TextOverflow.ellipsis, style: Tema.texto(size: 17, weight: FontWeight.w700)),
-                  Text('Caseta LZC · ${r.nombre} · ${p.sentido}', maxLines: 1, overflow: TextOverflow.ellipsis, style: Tema.chico),
+                  Text(p.nombre, maxLines: 1, overflow: TextOverflow.ellipsis, style: Tema.textoFijo(size: 17, weight: FontWeight.w700)),
+                  Text('Caseta LZC · ${r.nombre} · ${p.sentido}', maxLines: 1, overflow: TextOverflow.ellipsis, style: Tema.chicoFijo),
                 ]),
               ),
             ]),
@@ -301,48 +301,48 @@ class _Parada3DState extends State<_Parada3DMapa> {
           bottom: abajo + 12,
           child: Container(
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(color: Tema.tarjeta, borderRadius: BorderRadius.circular(20), boxShadow: Tema.sombra),
+            decoration: BoxDecoration(color: Tema.blanco, borderRadius: BorderRadius.circular(20), boxShadow: Tema.sombra),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
               Row(children: [
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
-                    color: enParada ? Tema.verdeClaro : const Color(0xFF1C1C1E),
+                    color: enParada ? Tema.verdeClaroFijo : const Color(0xFF1C1C1E),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
                     enParada ? 'EN PARADA' : _texto(llegadas.first - ahora).toUpperCase(),
-                    style: Tema.texto(size: 22, weight: FontWeight.w800, color: enParada ? Tema.verde : Tema.amarillo),
+                    style: Tema.textoFijo(size: 22, weight: FontWeight.w800, color: enParada ? Tema.verdeFijo : Tema.amarillo),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     enParada ? 'La combi está subiendo y bajando gente' : 'Próxima combi · ${hora(llegadas.first)}',
-                    style: Tema.texto(size: 15, weight: FontWeight.w600),
+                    style: Tema.textoFijo(size: 15, weight: FontWeight.w600),
                   ),
                 ),
               ]),
               const SizedBox(height: 8),
-              Text('Después: ${llegadas.skip(1).map(hora).join(' · ')}', style: Tema.chico),
+              Text('Después: ${llegadas.skip(1).map(hora).join(' · ')}', style: Tema.chicoFijo),
               if (semaforoCerca.isNotEmpty)
-                Text('Cerca: ${semaforoCerca.first.nombre.toLowerCase()}', style: Tema.chico),
-              Text('Techo verde = combi en parada · rojo = en semáforo', style: Tema.chico),
+                Text('Cerca: ${semaforoCerca.first.nombre.toLowerCase()}', style: Tema.chicoFijo),
+              Text('Techo verde = combi en parada · rojo = en semáforo', style: Tema.chicoFijo),
               const SizedBox(height: 10),
               Row(children: [
                 Expanded(
                   child: CupertinoButton(
                     padding: const EdgeInsets.symmetric(vertical: 10),
-                    color: _girar && !_seguir ? Tema.tinta : Tema.fondo,
+                    color: _girar && !_seguir ? Tema.negro : Tema.fondoFijo,
                     borderRadius: BorderRadius.circular(12),
                     onPressed: () => setState(() {
                       _girar = !_girar || _seguir;
                       _seguir = false;
                     }),
                     child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                      Icon(Icons.threesixty_rounded, size: 18, color: _girar && !_seguir ? const Color(0xFFFFFFFF) : Tema.tinta),
+                      Icon(Icons.threesixty_rounded, size: 18, color: _girar && !_seguir ? const Color(0xFFFFFFFF) : Tema.negro),
                       const SizedBox(width: 6),
-                      Text('Girar', style: Tema.texto(size: 15, weight: FontWeight.w600, color: _girar && !_seguir ? const Color(0xFFFFFFFF) : Tema.tinta)),
+                      Text('Girar', style: Tema.textoFijo(size: 15, weight: FontWeight.w600, color: _girar && !_seguir ? const Color(0xFFFFFFFF) : Tema.negro)),
                     ]),
                   ),
                 ),
@@ -350,13 +350,13 @@ class _Parada3DState extends State<_Parada3DMapa> {
                 Expanded(
                   child: CupertinoButton(
                     padding: const EdgeInsets.symmetric(vertical: 10),
-                    color: _seguir ? Tema.tinta : Tema.fondo,
+                    color: _seguir ? Tema.negro : Tema.fondoFijo,
                     borderRadius: BorderRadius.circular(12),
                     onPressed: () => setState(() => _seguir = !_seguir),
                     child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                      Icon(Icons.directions_bus_rounded, size: 18, color: _seguir ? const Color(0xFFFFFFFF) : Tema.tinta),
+                      Icon(Icons.directions_bus_rounded, size: 18, color: _seguir ? const Color(0xFFFFFFFF) : Tema.negro),
                       const SizedBox(width: 6),
-                      Text('Seguir combi', style: Tema.texto(size: 15, weight: FontWeight.w600, color: _seguir ? const Color(0xFFFFFFFF) : Tema.tinta)),
+                      Text('Seguir combi', style: Tema.textoFijo(size: 15, weight: FontWeight.w600, color: _seguir ? const Color(0xFFFFFFFF) : Tema.negro)),
                     ]),
                   ),
                 ),

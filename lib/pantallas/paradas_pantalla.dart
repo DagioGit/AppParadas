@@ -66,7 +66,7 @@ class _ParadasPantallaState extends State<ParadasPantalla> {
                   children: {
                     for (var i = 0; i < sentidos.length; i++)
                       i: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        padding: EdgeInsets.symmetric(vertical: Tema.b(12)),
                         child: Text(sentidos[i], style: Tema.texto(size: 17, weight: FontWeight.w700)),
                       ),
                   },
@@ -139,9 +139,9 @@ class _FilaLlegada extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       onTap: () => mostrarParada(context, parada),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14),
+        padding: EdgeInsets.symmetric(vertical: Tema.b(14)),
         decoration: BoxDecoration(
-          border: primera ? null : const Border(top: BorderSide(color: Tema.linea, width: 0.5)),
+          border: primera ? null : Border(top: BorderSide(color: Tema.linea, width: 0.5)),
         ),
         child: Row(children: [
           Container(
@@ -149,7 +149,7 @@ class _FilaLlegada extends StatelessWidget {
             height: 40,
             alignment: Alignment.center,
             decoration: BoxDecoration(color: r.color, shape: BoxShape.circle),
-            child: Text('$numero', style: Tema.texto(size: 18, weight: FontWeight.w800, color: claro ? Tema.tinta : const Color(0xFFFFFFFF))),
+            child: Text('$numero', style: Tema.texto(size: 18, weight: FontWeight.w800, color: claro ? Tema.negro : Tema.blanco)),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -178,7 +178,7 @@ class _FilaLlegada extends StatelessWidget {
               margin: const EdgeInsets.only(left: 4),
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(color: Tema.amarillo, borderRadius: BorderRadius.circular(10)),
-              child: const Icon(Icons.view_in_ar_rounded, size: 26, color: Tema.tinta),
+              child: Icon(Icons.view_in_ar_rounded, size: Tema.b(26), color: Tema.negro),
             ),
           ),
         ]),

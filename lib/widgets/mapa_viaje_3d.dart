@@ -230,7 +230,7 @@ class _MapaViaje3DState extends State<MapaViaje3D> {
                   ? 'Ruta ${r.numero} · sale a las ${hora(r.salidaDe(t.sube!, t.inicio))}'
                   : 'Ruta ${r.numero} · a ${(((t.sube!.metros - m) % r.trazo.largo) / 1000).toStringAsFixed(1)} km · llega ${faltaTexto(t.inicio, ahora)}')
               : 'Vas en la Ruta ${r.numero} · bajas ${faltaTexto(t.fin, ahora)}';
-          etiquetas.add(etiqueta(p, texto, elegida ? Tema.tinta : Tema.gris, prioridad: elegida ? 1 : 4));
+          etiquetas.add(etiqueta(p, texto, elegida ? Tema.negro : Tema.grisFijo, prioridad: elegida ? 1 : 4));
         }
         if (elegida) {
           etiquetas.add(etiqueta(
@@ -240,7 +240,7 @@ class _MapaViaje3DState extends State<MapaViaje3D> {
             prioridad: 0,
           ));
           if (k == tramos.length - 1) {
-            etiquetas.add(etiqueta(t.baja!.punto, 'Bájate aquí · ${hora(t.fin)}', Tema.tinta, prioridad: 2));
+            etiquetas.add(etiqueta(t.baja!.punto, 'Bájate aquí · ${hora(t.fin)}', Tema.negro, prioridad: 2));
           }
         }
       }
