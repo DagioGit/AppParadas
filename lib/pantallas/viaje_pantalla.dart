@@ -8,6 +8,8 @@ import 'package:latlong2/latlong.dart';
 
 import '../ajustes.dart';
 import '../voz.dart';
+import '../widgets/dictado.dart';
+import 'guia_pantalla.dart';
 import '../datos/lugares.dart';
 import '../estado.dart';
 import '../modelo/geo.dart';
@@ -58,6 +60,10 @@ class _ViajePantallaState extends State<ViajePantalla> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _calcular();
         final ops = _opciones;
+        if (guiaInicial && ops != null && ops.isNotEmpty) {
+          guiaInicial = false;
+          _guiar();
+        }
         if (detalleInicial && ops != null && ops.isNotEmpty) {
           detalleInicial = false;
           Navigator.of(context).push(CupertinoPageRoute<void>(
@@ -139,7 +145,51 @@ class _ViajePantallaState extends State<ViajePantalla> {
     _calcular();
   }
 
-  void _calcular() {
+  /// "Quiero ir a…": escucha el destino, toma tu ubicación como origen y busca cómo llegar.
+  Future<void> _dictar() async {
+    final dicho = await escucharDestino(context);
+    if (dicho == null || dicho.isEmpty || !mounted) return;
+    final (deDonde, aDonde) = entenderDestino(dicho);
+    final todos = todosLosLugares();
+    final destino = buscarLugares(todos, aDonde, maximo: 1).firstOrNull;
+    if (destino == null) {
+      setState(() => _banner = 'No encontré "$aDonde". Intenta otra vez.');
+      Voz.decir('No encontré $aDonde. Intenta otra vez.');
+      return;
+    }
+    Lugar? origen = deDonde == null ? null : buscarLugares(todos, deDonde, maximo: 1).firstOrNull;
+    if (origen == null) {
+      final r = await obtenerUbicacion();
+      if (r.punto != null && r.problema == null) origen = Lugar('Mi ubicación', 'Donde estás ahora', TipoLugar.ubicacion, r.punto!);
+    }
+    if (!mounted) return;
+    setState(() {
+      if (origen != null) _desde = origen;
+      _hasta = destino;
+    });
+    _calcular(hablar: false);
+    final ops = _opciones;
+    if (_desde == null) {
+      Voz.decir('Vas a ${destino.nombre}. No sé dónde estás: toca en el mapa de dónde sales.');
+    } else if (!enServicio(segundosAhora())) {
+      Voz.decir('Vas a ${destino.nombre}. Por ahora no hay combis; vuelven a las 6 de la mañana.');
+    } else if (ops != null && ops.isNotEmpty) {
+      Voz.decir('Para ir de ${_desde!.nombre} a ${destino.nombre}. ${textoOpcion(ops.first, segundosAhora(), masRapida: true)} Si quieres que te guíe, toca Guiarme.');
+    } else {
+      Voz.decir('No encontré combis para llegar a ${destino.nombre}.');
+    }
+  }
+
+  void _guiar() {
+    final ops = _opciones;
+    if (ops == null || ops.isEmpty || _hasta == null) return;
+    Navigator.of(context).push(CupertinoPageRoute<void>(
+      title: 'Viaje',
+      builder: (_) => GuiaPantalla(opcion: ops[_sel.clamp(0, ops.length - 1)], destino: _hasta!.nombre),
+    ));
+  }
+
+  void _calcular({bool hablar = true}) {
     if (_desde == null || _hasta == null) {
       setState(() => _opciones = null);
       return;
@@ -152,7 +202,7 @@ class _ViajePantallaState extends State<ViajePantalla> {
       origenNombre: _desde!.nombre,
       destinoNombre: _hasta!.nombre,
     );
-    if (ops.isNotEmpty && enServicio(ahora)) {
+    if (hablar && ops.isNotEmpty && enServicio(ahora)) {
       Voz.avisar('Encontré ${ops.length} formas de llegar. ${textoOpcion(ops.first, ahora, masRapida: true)}');
     }
     setState(() {
@@ -286,6 +336,23 @@ class _ViajePantallaState extends State<ViajePantalla> {
               child: SizedBox(
                 height: Tema.b(54),
                 child: Stack(alignment: Alignment.center, children: [
+                  // Micrófono: decir a dónde vas
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Semantics(
+                      button: true,
+                      label: 'Decir a dónde quieres ir',
+                      child: GestureDetector(
+                        onTap: _dictar,
+                        child: Container(
+                          width: Tema.b(50),
+                          height: Tema.b(50),
+                          decoration: BoxDecoration(color: Tema.azul, shape: BoxShape.circle, boxShadow: Tema.sombra),
+                          child: Icon(Icons.mic_rounded, color: const Color(0xFFFFFFFF), size: Tema.b(28)),
+                        ),
+                      ),
+                    ),
+                  ),
                   // Indicación sólo mientras faltan puntos por marcar
                   if (_desde == null || _hasta == null)
                     IgnorePointer(
@@ -360,8 +427,22 @@ class _ViajePantallaState extends State<ViajePantalla> {
                       child: Text(
                         _desde != null && _hasta != null
                             ? 'Toca la X y marca otro lugar.'
-                            : 'Toca el mapa.',
+                            : 'Toca el mapa o dilo con tu voz.',
                         style: Tema.texto(size: 19, color: Tema.gris),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+                      child: CupertinoButton(
+                        color: Tema.azul,
+                        padding: EdgeInsets.symmetric(vertical: Tema.b(16)),
+                        borderRadius: BorderRadius.circular(16),
+                        onPressed: _dictar,
+                        child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                          const Icon(Icons.mic_rounded, color: Color(0xFFFFFFFF), size: 28),
+                          const SizedBox(width: 8),
+                          Text('Di a dónde vas', style: Tema.texto(size: 20, weight: FontWeight.w800, color: const Color(0xFFFFFFFF))),
+                        ]),
                       ),
                     ),
                   ]
@@ -433,6 +514,25 @@ class _ViajePantallaState extends State<ViajePantalla> {
                     ),
                   ),
                 ]),
+              ),
+              // Guía por voz en tiempo real del viaje elegido
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 2, 16, 8),
+                child: Semantics(
+                  button: true,
+                  label: 'Guiarme con voz paso a paso',
+                  child: CupertinoButton(
+                    color: Tema.azul,
+                    padding: EdgeInsets.symmetric(vertical: Tema.b(15)),
+                    borderRadius: BorderRadius.circular(14),
+                    onPressed: _guiar,
+                    child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                      const Icon(Icons.navigation_rounded, color: Color(0xFFFFFFFF), size: 26),
+                      const SizedBox(width: 8),
+                      Text('Guiarme con voz', style: Tema.texto(size: 19, weight: FontWeight.w800, color: const Color(0xFFFFFFFF))),
+                    ]),
+                  ),
+                ),
               ),
               for (var i = 0; i < ops.length; i++)
                 TarjetaOpcion(

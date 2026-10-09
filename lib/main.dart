@@ -111,6 +111,7 @@ void leerEnlace() {
   desdeInicial = buscar(q['desde']);
   hastaInicial = buscar(q['hasta']);
   detalleInicial = q['detalle'] == '1';
+  guiaInicial = q['guia'] == '1';
   hastaInicial ??= buscar(q['hacia']);
   final tab = q['tab'];
   if (tab == 'paradas') pestanas.index = 1;

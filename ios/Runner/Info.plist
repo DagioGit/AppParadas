@@ -66,6 +66,10 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>CombiLZC usa el micrófono para que digas a dónde quieres ir.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>CombiLZC convierte lo que dices en el lugar a donde quieres ir.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>CombiLZC usa tu ubicación para buscar las combis y paradas más cercanas.</string>
 </dict>

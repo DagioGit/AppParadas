@@ -18,6 +18,7 @@ if manifiesto.exists():
         "android.permission.INTERNET",
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.RECORD_AUDIO",
     ]
     nuevos = "".join(f'    <uses-permission android:name="{p}"/>\n' for p in permisos if p not in m)
     m = m.replace("    <application", nuevos + "    <application", 1)
@@ -33,6 +34,13 @@ if plist.exists():
         extra = f"\t<key>NSLocationWhenInUseUsageDescription</key>\n\t<string>{MOTIVO}</string>\n"
         i = p.rfind("</dict>")
         p = p[:i] + extra + p[i:]
+    for clave, texto in [
+        ("NSMicrophoneUsageDescription", "CombiLZC usa el micrófono para que digas a dónde quieres ir."),
+        ("NSSpeechRecognitionUsageDescription", "CombiLZC convierte lo que dices en el lugar a donde quieres ir."),
+    ]:
+        if clave not in p:
+            i = p.rfind("</dict>")
+            p = p[:i] + f"\t<key>{clave}</key>\n\t<string>{texto}</string>\n" + p[i:]
     plist.write_text(p)
 
 # ---------- Web ----------

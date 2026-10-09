@@ -30,3 +30,6 @@ Lugar? hastaInicial;
 
 /// Abrir el detalle de la opción más rápida al iniciar (?detalle=1).
 bool detalleInicial = false;
+
+/// Abrir la guía por voz de la opción más rápida al iniciar (?guia=1).
+bool guiaInicial = false;

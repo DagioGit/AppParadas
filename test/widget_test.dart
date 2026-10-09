@@ -2,6 +2,7 @@ import 'package:app_paradas/ajustes.dart';
 import 'package:app_paradas/datos/lugares.dart';
 import 'package:app_paradas/pantallas/ajustes_pantalla.dart';
 import 'package:app_paradas/pantallas/buscar_lugar.dart';
+import 'package:app_paradas/widgets/dictado.dart';
 import 'package:app_paradas/pantallas/rutas_pantalla.dart';
 import 'package:app_paradas/tema.dart';
 import 'package:flutter/cupertino.dart';
@@ -53,5 +54,12 @@ void main() {
     expect(buscarLugares(todos, 'avenida lázaro cárdenas').first.nombre, 'Av. Lázaro Cárdenas');
     expect(buscarLugares(todos, 'mina').any((l) => l.nombre.contains('Mina')), isTrue);
     expect(todos.where((l) => l.tipo == TipoLugar.avenida).length, greaterThan(500));
+  });
+
+  test('Entiende a dónde quiere ir la persona cuando lo dice', () {
+    expect(entenderDestino('Quiero ir al malecón'), (null, 'malecón'));
+    expect(entenderDestino('¿Cómo llego a la Plaza Las Américas, por favor?'), (null, 'plaza las américas'));
+    expect(entenderDestino('de la Gómez Sada al centro'), ('gómez sada', 'centro'));
+    expect(entenderDestino('Llévame al monumento a Lázaro Cárdenas').\$2, 'monumento a lázaro cárdenas');
   });
 }
