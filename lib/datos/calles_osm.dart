@@ -814,7 +814,7 @@ const List<Lugar> callesOsm = [
   Lugar('Miguel Aguirre', 'Calle · Vista Industrial;Abarrotes y regalos Palma · Lázaro Cárdenas', TipoLugar.avenida, LatLng(17.969654, -102.229783)),
   Lugar('Amazonas', 'Calle · La Orillita · Lázaro Cárdenas', TipoLugar.avenida, LatLng(18.004946, -102.222913)),
   Lugar('Calle 3', 'Calle · Lázaro Cárdenas', TipoLugar.avenida, LatLng(18.019797, -102.207798)),
-  Lugar('Calle Mateo Echáiz', 'Calle · Los Ángeles · Lázaro Cárdenas', TipoLugar.avenida, LatLng(17.972923, -102.22915)),
+  Lugar('Calle Mateo Echaíz', 'Calle · Los Ángeles · Lázaro Cárdenas', TipoLugar.avenida, LatLng(17.972923, -102.22915)),
   Lugar('Andador Chucándiro', 'Andador · Lázaro Cárdenas', TipoLugar.avenida, LatLng(18.025561, -102.213636)),
   Lugar('Privada de Lerdo de Tejada', 'Privada · Sector Pesquero · Lázaro Cárdenas', TipoLugar.avenida, LatLng(17.958537, -102.189535)),
   Lugar('Calle Anaís', 'Calle · La Orillita · Lázaro Cárdenas', TipoLugar.avenida, LatLng(18.00838, -102.221951)),
@@ -1718,7 +1718,6 @@ const List<Lugar> callesOsm = [
   Lugar('Privada de Virgo', 'Privada · INFONAVIT Nuevo Horizonte · Lázaro Cárdenas', TipoLugar.avenida, LatLng(17.960946, -102.209229)),
   Lugar('Fósforo', 'Calle · INFONAVIT Las Colinas · Lázaro Cárdenas', TipoLugar.avenida, LatLng(17.9691, -102.213335)),
   Lugar('Ciruelos', 'Calle · INFONAVIT Nuevo Horizonte · Lázaro Cárdenas', TipoLugar.avenida, LatLng(17.958257, -102.209219)),
-  Lugar('Francisco Díaz Barriga', 'Calle · Pie de Casa · Lázaro Cárdenas', TipoLugar.avenida, LatLng(17.972873, -102.227623)),
 ];
 
 const List<Lugar> coloniasOsm = [
