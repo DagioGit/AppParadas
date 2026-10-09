@@ -137,7 +137,7 @@ class Planificador {
     String origenNombre = 'Origen',
     String destinoNombre = 'Destino',
     int minimo = 3,
-    int maximo = 5,
+    int maximo = 3,
   }) {
     var radio = 900.0;
     var radioTransbordo = 450.0;
