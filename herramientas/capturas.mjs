@@ -49,6 +49,31 @@ for (const [nombre, q] of tomas) {
   console.log("captura", nombre);
 }
 
+// Caseta de cerca (dentro del visor de la página): pantalla colgada, banca y botes
+try {
+  await pagina.goto("http://localhost:8099" + BASE + "?parada3d=R1-4i&hora=10", { waitUntil: "load" });
+  await pagina.waitForTimeout(30000);
+  const visor = pagina.frames().find(f => f.url().includes("visor.html"));
+  if (visor) {
+    const tomas3d = [["2f-caseta-frente", [-0.9, -6.5, 2.3], [-0.9, 0, 1.6]], ["2g-caseta-banca", [-7.5, -4.5, 2.6], [-2.5, 0.2, 0.8]]];
+    for (const [nombre, cam, obj] of tomas3d) {
+      await visor.evaluate(([cam, obj]) => {
+        const C = window.VisorZona.capturas;
+        const c = C.caseta();
+        if (!c) return;
+        const [x, y, z, r] = c;
+        const w = ([lx, ly, lz]) => [x + lx * Math.cos(r) - ly * Math.sin(r), y + lx * Math.sin(r) + ly * Math.cos(r), z + lz];
+        C.pausar(true);
+        C.camara(w(cam), w(obj));
+        C.cuadro(0.016);
+      }, [cam, obj]);
+      await pagina.waitForTimeout(2500);
+      await pagina.screenshot({ path: path.join(salida, nombre + ".png") });
+      console.log("captura", nombre);
+    }
+  }
+} catch (e) { console.log("caseta de cerca:", e.message); }
+
 // Viaje marcando con clics: primero dónde estás y luego a dónde vas
 await pagina.goto("http://localhost:8099" + BASE + "?tab=viaje", { waitUntil: "load" });
 await pagina.waitForTimeout(16000);
