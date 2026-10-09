@@ -75,10 +75,14 @@ class _HojaDictadoState extends State<_HojaDictado> {
       });
       await _stt.listen(
         onResult: _resultado,
-        localeId: idioma,
-        listenFor: const Duration(seconds: 12),
-        pauseFor: const Duration(seconds: 3),
-        listenOptions: SpeechListenOptions(partialResults: true, listenMode: ListenMode.search, cancelOnError: true),
+        listenOptions: SpeechListenOptions(
+          localeId: idioma,
+          listenFor: const Duration(seconds: 12),
+          pauseFor: const Duration(seconds: 3),
+          partialResults: true,
+          listenMode: ListenMode.search,
+          cancelOnError: true,
+        ),
       );
     } catch (_) {
       if (mounted) setState(() => _problema = 'No se pudo usar el micrófono. Escribe el lugar arriba.');

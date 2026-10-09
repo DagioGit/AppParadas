@@ -60,6 +60,6 @@ void main() {
     expect(entenderDestino('Quiero ir al malecón'), (null, 'malecón'));
     expect(entenderDestino('¿Cómo llego a la Plaza Las Américas, por favor?'), (null, 'plaza las américas'));
     expect(entenderDestino('de la Gómez Sada al centro'), ('gómez sada', 'centro'));
-    expect(entenderDestino('Llévame al monumento a Lázaro Cárdenas').\$2, 'monumento a lázaro cárdenas');
+    expect(entenderDestino('Llévame al monumento a Lázaro Cárdenas').$2, 'monumento a lázaro cárdenas');
   });
 }

@@ -8,7 +8,6 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_tts/flutter_tts.dart';
 
 import 'ajustes.dart';
-import 'modelo/incidentes.dart';
 import 'modelo/planificador.dart';
 import 'modelo/ruta.dart';
 

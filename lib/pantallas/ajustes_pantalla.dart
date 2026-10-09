@@ -3,7 +3,6 @@ import 'package:flutter/material.dart' show Icons;
 import 'package:flutter/services.dart';
 
 import '../ajustes.dart';
-import '../modelo/ruta.dart';
 import '../tema.dart';
 import '../widgets/comunes.dart' show ConReloj;
 import '../widgets/selector_hora.dart';
