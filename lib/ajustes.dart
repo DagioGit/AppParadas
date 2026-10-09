@@ -14,8 +14,8 @@ class Ajustes extends ChangeNotifier {
   bool contraste = false;
   bool vibrar = true;
 
-  /// 0 = Automática (como el teléfono), 1 = Clara, 2 = Oscura.
-  int apariencia = 0;
+  /// 0 = Automática (como el teléfono), 1 = Clara (de fábrica), 2 = Oscura.
+  int apariencia = 1;
 
   int get nivelLetra {
     var mejor = 0;
@@ -55,7 +55,7 @@ class Ajustes extends ChangeNotifier {
         a.botonesGrandes = false;
         a.contraste = false;
         a.vibrar = true;
-        a.apariencia = 0;
+        a.apariencia = 1;
       });
 
   Future<void> _guardar() async {

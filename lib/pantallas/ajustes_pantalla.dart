@@ -4,9 +4,9 @@ import 'package:flutter/services.dart';
 
 import '../ajustes.dart';
 import '../tema.dart';
-import '../widgets/ios.dart';
 
-/// Ajustes de la app, con el mismo diseño que Ajustes del iPhone.
+/// Ajustes con el estilo de la app: tarjetas grandes, colores de las rutas
+/// y botones fáciles de tocar para personas mayores y niños.
 class AjustesPantalla extends StatelessWidget {
   const AjustesPantalla({super.key});
 
@@ -15,150 +15,140 @@ class AjustesPantalla extends StatelessWidget {
     return ListenableBuilder(
       listenable: ajustes,
       builder: (context, _) => CupertinoPageScaffold(
-        child: CustomScrollView(slivers: [
-          const CupertinoSliverNavigationBar(largeTitle: Text('Ajustes')),
-          SliverList(
-            delegate: SliverChildListDelegate([
-              _tarjetaApp(),
-              _letra(),
-              GrupoIOS(
-                titulo: 'Para ver mejor',
-                filas: [
-                  FilaIOS.interruptor(
-                    icono: const IconoIOS(Icons.format_bold_rounded, Color(0xFF8E8E93)),
-                    titulo: 'Letra en negritas',
-                    valor: ajustes.negritas,
-                    alCambiar: (v) => _cambiar((a) => a.negritas = v),
-                  ),
-                  FilaIOS.interruptor(
-                    icono: const IconoIOS(Icons.touch_app_rounded, Color(0xFFFF9500)),
-                    titulo: 'Botones grandes',
-                    valor: ajustes.botonesGrandes,
-                    alCambiar: (v) => _cambiar((a) => a.botonesGrandes = v),
-                  ),
-                  FilaIOS.interruptor(
-                    icono: const IconoIOS(Icons.contrast_rounded, Color(0xFF0A84FF)),
-                    titulo: 'Más contraste',
-                    valor: ajustes.contraste,
-                    alCambiar: (v) => _cambiar((a) => a.contraste = v),
-                  ),
-                  FilaIOS.interruptor(
-                    icono: const IconoIOS(Icons.vibration_rounded, Color(0xFFFF3B30)),
-                    titulo: 'Vibrar con avisos',
-                    valor: ajustes.vibrar,
-                    alCambiar: (v) => _cambiar((a) => a.vibrar = v),
-                  ),
-                ],
-              ),
-              _apariencia(),
-              GrupoIOS(filas: [
-                FilaIOS(
-                  icono: const IconoIOS(Icons.restart_alt_rounded, Color(0xFF8E8E93)),
-                  titulo: 'Volver a lo de fábrica',
-                  colorTitulo: Tema.rojo,
-                  flecha: false,
-                  onTap: () => _confirmarRestablecer(context),
-                ),
-              ]),
-              GrupoIOS(
-                titulo: 'Acerca de',
-                filas: const [
-                  FilaIOS(
-                    icono: IconoIOS(Icons.directions_bus_rounded, Color(0xFF6E6E73)),
-                    titulo: 'Versión',
-                    valor: '1.0',
-                  ),
-                  FilaIOS(
-                    icono: IconoIOS(Icons.school_rounded, Color(0xFF5856D6)),
-                    titulo: 'Proyecto',
-                    valor: 'Tec de Lázaro Cárdenas',
-                  ),
-                  FilaIOS(
-                    icono: IconoIOS(Icons.map_rounded, Color(0xFF34C759)),
-                    titulo: 'Mapa',
-                    valor: 'OpenStreetMap',
-                  ),
-                ],
-              ),
-              SizedBox(height: MediaQuery.of(context).padding.bottom + 40),
-            ]),
-          ),
-        ]),
+        child: ListView(
+          padding: EdgeInsets.fromLTRB(0, MediaQuery.of(context).padding.top + 8, 0, MediaQuery.of(context).padding.bottom + 40),
+          children: [
+            const _Portada(),
+            const _Titulo(Icons.text_fields_rounded, 'Tamaño de letra'),
+            _letra(),
+            const _Titulo(Icons.visibility_rounded, 'Para ver mejor'),
+            _opciones(),
+            const _Titulo(Icons.palette_rounded, 'Colores de la app'),
+            _apariencia(),
+            const SizedBox(height: 22),
+            _restablecer(context),
+            const _Pie(),
+          ],
+        ),
       ),
     );
   }
 
-  void _cambiar(void Function(Ajustes a) f) {
+  static void _cambiar(void Function(Ajustes a) f) {
     if (ajustes.vibrar) HapticFeedback.selectionClick();
     ajustes.cambiar(f);
   }
 
-  Widget _tarjetaApp() {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 6, 16, 0),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(color: Tema.tarjeta, borderRadius: BorderRadius.circular(22)),
-      child: Row(children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(14),
-          child: Image.asset('assets/logo.png', width: 62, height: 62),
-        ),
-        const SizedBox(width: 14),
-        Expanded(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('AppParadas', style: Tema.texto(size: 22, weight: FontWeight.w700)),
-            Text('Combis de Lázaro Cárdenas', style: Tema.texto(size: 15, color: Tema.gris)),
+  /// Vista previa y cinco botones con una "A" cada vez más grande.
+  Widget _letra() {
+    final nivel = ajustes.nivelLetra;
+    return _Caja(
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(color: Tema.fondo, borderRadius: BorderRadius.circular(18)),
+          child: Row(children: [
+            Container(
+              width: 46,
+              height: 46,
+              decoration: BoxDecoration(color: const Color(0xFF6E6E73), borderRadius: BorderRadius.circular(13)),
+              child: const Icon(Icons.directions_bus_rounded, color: Color(0xFFFFFFFF), size: 28),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text('Ruta 1 · Malecón', style: Tema.texto(size: 15, color: Tema.gris)),
+                Text('Pasa en 3 min', style: Tema.texto(size: 22, weight: FontWeight.w800)),
+              ]),
+            ),
           ]),
+        ),
+        const SizedBox(height: 14),
+        Row(children: [
+          for (var i = 0; i < Ajustes.tamanos.length; i++) ...[
+            if (i > 0) const SizedBox(width: 8),
+            Expanded(
+              child: GestureDetector(
+                onTap: () => _cambiar((a) => a.letra = Ajustes.tamanos[i]),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 180),
+                  height: Tema.b(60),
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: i == nivel ? Tema.amarillo : Tema.fondo,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Text(
+                    'A',
+                    style: Tema.texto(
+                      size: 14.0 + i * 5,
+                      weight: FontWeight.w800,
+                      color: i == nivel ? Tema.negro : Tema.tinta,
+                      fijo: true,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ]),
+        const SizedBox(height: 10),
+        Center(
+          child: Text(Ajustes.nombresTamano[nivel], style: Tema.texto(size: 16, weight: FontWeight.w700, color: Tema.gris)),
         ),
       ]),
     );
   }
 
-  /// Tamaño de letra: vista previa y barra con "A" chica y "A" grande, como en el iPhone.
-  Widget _letra() {
-    final nivel = ajustes.nivelLetra;
-    return GrupoIOS(
-      titulo: 'Tamaño de letra',
-      pie: 'Mueve la barra. Toda la app cambia al momento.',
-      filas: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(18, 16, 18, 6),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('La combi pasa en 3 min', style: Tema.texto(size: 22, weight: FontWeight.w700)),
-            const SizedBox(height: 2),
-            Text('Así se ve la letra', style: Tema.texto(size: 16, color: Tema.gris)),
-          ]),
-        ),
-        Padding(
-          padding: EdgeInsets.fromLTRB(16, 4, 16, Tema.b(10)),
-          child: Row(children: [
-            Text('A', style: Tema.texto(size: 15, weight: FontWeight.w600, fijo: true)),
-            Expanded(
-              child: CupertinoSlider(
-                value: nivel.toDouble(),
-                min: 0,
-                max: (Ajustes.tamanos.length - 1).toDouble(),
-                divisions: Ajustes.tamanos.length - 1,
-                onChanged: (v) {
-                  final i = v.round();
-                  if (i != ajustes.nivelLetra) _cambiar((a) => a.letra = Ajustes.tamanos[i]);
-                },
-              ),
-            ),
-            Text('A', style: Tema.texto(size: 28, weight: FontWeight.w600, fijo: true)),
-          ]),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(18, 0, 18, 14),
-          child: Center(
-            child: Text(Ajustes.nombresTamano[nivel], style: Tema.texto(size: 15, weight: FontWeight.w600, color: Tema.azul)),
+  /// Cuatro mosaicos grandes que se prenden y apagan con un toque.
+  Widget _opciones() {
+    final tiles = [
+      _Mosaico(
+        icono: Icons.format_bold_rounded,
+        color: const Color(0xFF5856D6),
+        titulo: 'Letra gruesa',
+        activo: ajustes.negritas,
+        onTap: () => _cambiar((a) => a.negritas = !a.negritas),
+      ),
+      _Mosaico(
+        icono: Icons.touch_app_rounded,
+        color: const Color(0xFFFF9500),
+        titulo: 'Botones grandes',
+        activo: ajustes.botonesGrandes,
+        onTap: () => _cambiar((a) => a.botonesGrandes = !a.botonesGrandes),
+      ),
+      _Mosaico(
+        icono: Icons.contrast_rounded,
+        color: const Color(0xFF0A84FF),
+        titulo: 'Más contraste',
+        activo: ajustes.contraste,
+        onTap: () => _cambiar((a) => a.contraste = !a.contraste),
+      ),
+      _Mosaico(
+        icono: Icons.vibration_rounded,
+        color: const Color(0xFFFF3B30),
+        titulo: 'Vibrar al avisar',
+        activo: ajustes.vibrar,
+        onTap: () => _cambiar((a) => a.vibrar = !a.vibrar),
+      ),
+    ];
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(children: [
+        for (var f = 0; f < tiles.length; f += 2) ...[
+          if (f > 0) const SizedBox(height: 12),
+          IntrinsicHeight(
+            child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              Expanded(child: tiles[f]),
+              const SizedBox(width: 12),
+              Expanded(child: tiles[f + 1]),
+            ]),
           ),
-        ),
-      ],
+        ],
+      ]),
     );
   }
 
-  /// Automática / Clara / Oscura con dibujitos de un teléfono, como en Pantalla y brillo.
   Widget _apariencia() {
     Widget opcion(int i, String nombre) {
       final elegida = ajustes.apariencia == i;
@@ -166,38 +156,50 @@ class AjustesPantalla extends StatelessWidget {
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: () => _cambiar((a) => a.apariencia = i),
-          child: Column(children: [
-            _MiniTelefono(modo: i),
-            const SizedBox(height: 8),
-            Text(nombre, style: Tema.texto(size: 15, weight: FontWeight.w600)),
-            const SizedBox(height: 6),
-            Container(
-              width: 24,
-              height: 24,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: elegida ? Tema.azul : const Color(0x00000000),
-                border: Border.all(color: elegida ? Tema.azul : Tema.grisClaro, width: 1.6),
-              ),
-              child: elegida ? const Icon(Icons.check_rounded, size: 17, color: Color(0xFFFFFFFF)) : null,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            padding: EdgeInsets.symmetric(vertical: Tema.b(12)),
+            decoration: BoxDecoration(
+              color: elegida ? Tema.amarillo.withValues(alpha: 0.18) : const Color(0x00000000),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: elegida ? Tema.amarillo : const Color(0x00000000), width: 3),
             ),
-          ]),
+            child: Column(children: [
+              _MiniTelefono(modo: i),
+              const SizedBox(height: 8),
+              Text(nombre, style: Tema.texto(size: 16, weight: FontWeight.w700)),
+            ]),
+          ),
         ),
       );
     }
 
-    return GrupoIOS(
-      titulo: 'Apariencia',
-      filas: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(12, 18, 12, 16),
-          child: Row(children: [
-            opcion(0, 'Automática'),
-            opcion(1, 'Clara'),
-            opcion(2, 'Oscura'),
-          ]),
-        ),
-      ],
+    return _Caja(
+      padding: const EdgeInsets.all(10),
+      child: Row(children: [
+        opcion(1, 'Clara'),
+        const SizedBox(width: 6),
+        opcion(2, 'Oscura'),
+        const SizedBox(width: 6),
+        opcion(0, 'Como mi cel'),
+      ]),
+    );
+  }
+
+  Widget _restablecer(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: CupertinoButton(
+        color: Tema.tarjeta,
+        borderRadius: BorderRadius.circular(18),
+        padding: EdgeInsets.symmetric(vertical: Tema.b(16)),
+        onPressed: () => _confirmarRestablecer(context),
+        child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+          Icon(Icons.restart_alt_rounded, color: Tema.rojo, size: 24),
+          const SizedBox(width: 8),
+          Text('Dejar como al principio', style: Tema.texto(size: 17, weight: FontWeight.w700, color: Tema.rojo)),
+        ]),
+      ),
     );
   }
 
@@ -205,15 +207,235 @@ class AjustesPantalla extends StatelessWidget {
     final si = await showCupertinoDialog<bool>(
       context: context,
       builder: (ctx) => CupertinoAlertDialog(
-        title: const Text('¿Volver a lo de fábrica?'),
-        content: const Text('La letra, los botones y la apariencia regresan como al principio.'),
+        title: const Text('¿Dejar como al principio?'),
+        content: const Text('La letra, los botones y los colores regresan como estaban.'),
         actions: [
-          CupertinoDialogAction(child: const Text('Cancelar'), onPressed: () => Navigator.of(ctx).pop(false)),
+          CupertinoDialogAction(child: const Text('No'), onPressed: () => Navigator.of(ctx).pop(false)),
           CupertinoDialogAction(isDestructiveAction: true, child: const Text('Sí'), onPressed: () => Navigator.of(ctx).pop(true)),
         ],
       ),
     );
     if (si == true) ajustes.restablecer();
+  }
+}
+
+/// Portada: tarjeta gris de la Ruta 1 con el logo y una calle con su combi.
+class _Portada extends StatelessWidget {
+  const _Portada();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(28),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF7C7C82), Color(0xFF3A3A3C)],
+        ),
+        boxShadow: Tema.sombra,
+      ),
+      child: Column(children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 20, 16, 16),
+          child: Row(children: [
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text('Ajustes', style: Tema.texto(size: 34, weight: FontWeight.w800, color: Tema.blanco, fijo: true)),
+                const SizedBox(height: 2),
+                Text('Hazla a tu medida', style: Tema.texto(size: 17, weight: FontWeight.w600, color: const Color(0xDDFFFFFF))),
+              ]),
+            ),
+            Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: const [BoxShadow(color: Color(0x40000000), blurRadius: 14, offset: Offset(0, 6))],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: Image.asset('assets/logo.png', width: 78, height: 78),
+              ),
+            ),
+          ]),
+        ),
+        const _Calle(),
+      ]),
+    );
+  }
+}
+
+/// Franja de calle con línea amarilla punteada, paradas y la combi.
+class _Calle extends StatelessWidget {
+  const _Calle();
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 46,
+      child: Stack(children: [
+        Positioned.fill(child: Container(color: const Color(0xFF2C2C2E))),
+        Positioned.fill(child: CustomPaint(painter: _LineaCalle())),
+        for (final x in [0.2, 0.55, 0.88])
+          Align(
+            alignment: Alignment(x * 2 - 1, -0.8),
+            child: Container(
+              width: 10,
+              height: 10,
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFFFFF),
+                shape: BoxShape.circle,
+                border: Border.all(color: const Color(0xFF6E6E73), width: 2.5),
+              ),
+            ),
+          ),
+        Align(
+          alignment: const Alignment(-0.25, 0),
+          child: Container(
+            width: 44,
+            height: 28,
+            decoration: BoxDecoration(
+              color: const Color(0xFFF2F2F7),
+              borderRadius: BorderRadius.circular(8),
+              boxShadow: const [BoxShadow(color: Color(0x66000000), blurRadius: 6, offset: Offset(0, 2))],
+            ),
+            child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              for (var i = 0; i < 3; i++)
+                Container(
+                  width: 8,
+                  height: 9,
+                  margin: const EdgeInsets.symmetric(horizontal: 1.5),
+                  decoration: BoxDecoration(color: const Color(0xFF3A3A3C), borderRadius: BorderRadius.circular(2)),
+                ),
+            ]),
+          ),
+        ),
+      ]),
+    );
+  }
+}
+
+class _LineaCalle extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final p = Paint()
+      ..color = Tema.amarillo
+      ..strokeWidth = 3;
+    final y = size.height / 2;
+    for (double x = 8; x < size.width; x += 26) {
+      canvas.drawLine(Offset(x, y), Offset(x + 13, y), p);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_LineaCalle old) => false;
+}
+
+class _Titulo extends StatelessWidget {
+  final IconData icono;
+  final String texto;
+  const _Titulo(this.icono, this.texto);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(22, 24, 22, 10),
+      child: Row(children: [
+        Icon(icono, size: 24, color: Tema.gris),
+        const SizedBox(width: 8),
+        Text(texto, style: Tema.texto(size: 20, weight: FontWeight.w800)),
+      ]),
+    );
+  }
+}
+
+class _Caja extends StatelessWidget {
+  final Widget child;
+  final EdgeInsets padding;
+  const _Caja({required this.child, this.padding = const EdgeInsets.all(14)});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: padding,
+      decoration: BoxDecoration(color: Tema.tarjeta, borderRadius: BorderRadius.circular(24)),
+      child: child,
+    );
+  }
+}
+
+/// Mosaico grande: ícono en círculo de color, nombre y "Prendido / Apagado".
+class _Mosaico extends StatelessWidget {
+  final IconData icono;
+  final Color color;
+  final String titulo;
+  final bool activo;
+  final VoidCallback onTap;
+  const _Mosaico({required this.icono, required this.color, required this.titulo, required this.activo, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: EdgeInsets.all(Tema.b(14)),
+        decoration: BoxDecoration(
+          color: activo ? color.withValues(alpha: Tema.oscuro ? 0.28 : 0.12) : Tema.tarjeta,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: activo ? color : const Color(0x00000000), width: 2.5),
+        ),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(children: [
+            Container(
+              width: 46,
+              height: 46,
+              decoration: BoxDecoration(color: activo ? color : Tema.relleno, shape: BoxShape.circle),
+              child: Icon(icono, size: 26, color: activo ? const Color(0xFFFFFFFF) : Tema.gris),
+            ),
+            const Spacer(),
+            Icon(
+              activo ? Icons.check_circle_rounded : Icons.circle_outlined,
+              size: 28,
+              color: activo ? color : Tema.grisClaro,
+            ),
+          ]),
+          const SizedBox(height: 12),
+          Text(titulo, style: Tema.texto(size: 18, weight: FontWeight.w700)),
+          const SizedBox(height: 2),
+          Text(activo ? 'Prendido' : 'Apagado',
+              style: Tema.texto(size: 15, weight: FontWeight.w600, color: activo ? color : Tema.gris)),
+        ]),
+      ),
+    );
+  }
+}
+
+class _Pie extends StatelessWidget {
+  const _Pie();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(32, 28, 32, 0),
+      child: Column(children: [
+        Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+          for (final c in const [Color(0xFF6E6E73), Color(0xFFF2C200), Color(0xFF34C759), Color(0xFF0A84FF), Color(0xFFAF52DE)])
+            Container(
+              width: 10,
+              height: 10,
+              margin: const EdgeInsets.symmetric(horizontal: 3),
+              decoration: BoxDecoration(color: c, shape: BoxShape.circle),
+            ),
+        ]),
+        const SizedBox(height: 10),
+        Text('AppParadas 1.0', style: Tema.texto(size: 15, weight: FontWeight.w700, color: Tema.gris)),
+        Text('Proyecto del Tec de Lázaro Cárdenas', textAlign: TextAlign.center, style: Tema.chico),
+        Text('Mapa © OpenStreetMap', style: Tema.chico),
+      ]),
+    );
   }
 }
 
@@ -256,8 +478,8 @@ class _MiniTelefono extends StatelessWidget {
     }
 
     return Container(
-      width: 62,
-      height: 112,
+      width: 58,
+      height: 104,
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(13),
@@ -265,8 +487,8 @@ class _MiniTelefono extends StatelessWidget {
       ),
       child: modo == 0
           ? Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-              Expanded(child: ClipRect(child: OverflowBox(alignment: Alignment.centerLeft, maxWidth: 56, minWidth: 56, child: pantalla(false)))),
-              Expanded(child: ClipRect(child: OverflowBox(alignment: Alignment.centerRight, maxWidth: 56, minWidth: 56, child: pantalla(true)))),
+              Expanded(child: ClipRect(child: OverflowBox(alignment: Alignment.centerLeft, maxWidth: 52, minWidth: 52, child: pantalla(false)))),
+              Expanded(child: ClipRect(child: OverflowBox(alignment: Alignment.centerRight, maxWidth: 52, minWidth: 52, child: pantalla(true)))),
             ])
           : pantalla(modo == 2),
     );

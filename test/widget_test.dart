@@ -38,9 +38,9 @@ void main() {
     ajustes.cambiar((a) => a.letra = Ajustes.tamanos.last);
     expect(Tema.texto().fontSize!, greaterThan(antes));
     await tester.pump();
-    await tester.ensureVisible(find.text('Letra en negritas'));
+    await tester.scrollUntilVisible(find.text('Letra gruesa'), 200);
     await tester.pump();
-    await tester.tap(find.text('Letra en negritas'));
+    await tester.tap(find.text('Letra gruesa'));
     await tester.pump();
     expect(ajustes.negritas, isTrue);
     ajustes.restablecer();
