@@ -98,7 +98,7 @@ String colorFuerte(Ruta r) => r.id == 'R1' ? '#3a3a3c' : hexColor(r.color);
 /// La Caseta LZC de la página web (mismo modelo de SketchUp), puesta junto a la parada.
 /// [escala] 1 = tamaño real (4.9 m); en el mapa general se agranda para que se vea desde arriba.
 /// La pantalla del contador cuelga del techo (verde cuando hay combi en la parada);
-/// tiene banca adentro y afuera, botes de basura separada y rampa para silla de ruedas.
+/// tiene banca adentro y afuera, botes de basura separada soldados junto a la banca y rampa.
 List<Map<String, dynamic>> casetaModelo(Parada p, {double escala = 1, double lado = 6.5, bool resaltada = false, bool combiEnParada = false}) {
   final r = p.ruta;
   final rumbo = r.trazo.rumboEn(p.metros);
@@ -118,18 +118,22 @@ List<Map<String, dynamic>> casetaModelo(Parada p, {double escala = 1, double lad
   }
 
   return [
-    for (final q in piezasCaseta)
+    for (final q in piezasCaseta.where((q) => !q.nombre.startsWith('Bote_')))
       pieza(q.x0, q.x1, q.y0, q.y1, q.z0, q.z1, resaltada && q.nombre.startsWith('Tira_LED') ? '#34c759' : q.color),
     // Pantalla del contador colgada del techo, al frente: es parte de la caseta
     pieza(-1.18, -1.14, -0.96, -0.92, 2.2, 2.62, '#2b3237'),
     pieza(-0.36, -0.32, -0.96, -0.92, 2.2, 2.62, '#2b3237'),
     pieza(-1.32, -0.18, -1.0, -0.88, 1.9, 2.22, '#11181d'),
     pieza(-1.27, -0.23, -1.012, -0.998, 1.94, 2.18, combiEnParada || resaltada ? '#34c759' : '#f2c200'),
-    // Tapas de los botes de basura separada y un tercero para reciclables
-    pieza(2.48, 2.96, -0.09, 0.39, 0.85, 0.92, '#1f5f43'),
-    pieza(2.48, 2.96, 0.38, 0.86, 0.85, 0.92, '#4a5157'),
-    pieza(2.5, 2.94, 0.87, 1.31, 0.0, 0.85, '#1f5caa'),
-    pieza(2.48, 2.96, 0.85, 1.33, 0.85, 0.92, '#163f78'),
+    // Botes de basura separada soldados a la caseta, junto a la banca (cuelgan de un marco de acero)
+    pieza(-2.02, -1.96, 0.0, 0.8, 0.95, 1.0, '#2b3237'),
+    pieza(-2.02, -1.96, 0.0, 0.05, 0.15, 1.0, '#2b3237'),
+    pieza(-2.2, -1.78, 0.02, 0.26, 0.28, 0.9, '#1f5caa'),
+    pieza(-2.2, -1.78, 0.28, 0.52, 0.28, 0.9, '#2f7d5b'),
+    pieza(-2.2, -1.78, 0.54, 0.78, 0.28, 0.9, '#70787e'),
+    pieza(-2.22, -1.76, 0.02, 0.26, 0.9, 0.95, '#163f78'),
+    pieza(-2.22, -1.76, 0.28, 0.52, 0.9, 0.95, '#1f5f43'),
+    pieza(-2.22, -1.76, 0.54, 0.78, 0.9, 0.95, '#4a5157'),
     // Rampa azul para silla de ruedas (baja del piso de la caseta a la banqueta)
     pieza(2.4, 3.0, -1.21, -0.27, 0.0, 0.12, '#2d63c8'),
     pieza(3.0, 3.7, -1.21, -0.27, 0.0, 0.07, '#2d63c8'),

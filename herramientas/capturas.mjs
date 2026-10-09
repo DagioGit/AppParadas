@@ -55,7 +55,7 @@ try {
   await pagina.waitForTimeout(30000);
   const visor = pagina.frames().find(f => f.url().includes("visor.html"));
   if (visor) {
-    const tomas3d = [["2f-caseta-frente", [-0.9, -6.5, 2.3], [-0.9, 0, 1.6]], ["2g-caseta-banca", [-7.5, -4.5, 2.6], [-2.5, 0.2, 0.8]], ["2h-caseta-mapa", [-4.6, 0.35, 1.35], [-2.36, 0.35, 1.3]], ["2i-caseta-rampa", [7.2, -4.2, 2.4], [3.2, -0.5, 0.2]]];
+    const tomas3d = [["2f-caseta-frente", [-0.9, -6.5, 2.3], [-0.9, 0, 1.6]], ["2g-caseta-banca", [-7.5, -4.5, 2.6], [-2.5, 0.2, 0.8]], ["2h-caseta-botes", [0.6, -2.6, 1.7], [-2.0, 0.4, 0.6]], ["2i-caseta-rampa", [7.2, -4.2, 2.4], [3.2, -0.5, 0.2]]];
     for (const [nombre, cam, obj] of tomas3d) {
       await visor.evaluate(([cam, obj]) => {
         const C = window.VisorZona.capturas;
