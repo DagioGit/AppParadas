@@ -85,12 +85,20 @@ Map<String, dynamic> geoRutas(Iterable<Ruta> rs, {bool tenues = false}) => colec
 
 // ---------------- Casetas (paradas en 3D) ----------------
 
+/// Punto del mapa en la posición ([x] a lo largo, [y] hacia la banqueta) de la caseta de [p].
+LatLng puntoEnCaseta(Parada p, double x, double y, {double escala = 1, double lado = 5.2}) {
+  final rumbo = p.ruta.trazo.rumboEn(p.metros);
+  final adelante = mover(p.punto, math.sin(rumbo) * x * escala, math.cos(rumbo) * x * escala);
+  return alLado(adelante, rumbo, lado + y * escala);
+}
+
 /// Color de techo/carrocería: la Ruta 1 gris se oscurece para que resalte sobre el mapa gris.
 String colorFuerte(Ruta r) => r.id == 'R1' ? '#3a3a3c' : hexColor(r.color);
 
 /// La Caseta LZC de la página web (mismo modelo de SketchUp), puesta junto a la parada.
 /// [escala] 1 = tamaño real (4.9 m); en el mapa general se agranda para que se vea desde arriba.
-/// Al lado va el tótem con la pantalla del contador (verde cuando hay combi en la parada).
+/// La pantalla del contador cuelga del techo (verde cuando hay combi en la parada);
+/// tiene banca adentro y afuera y botes de basura separada.
 List<Map<String, dynamic>> casetaModelo(Parada p, {double escala = 1, double lado = 6.5, bool resaltada = false, bool combiEnParada = false}) {
   final r = p.ruta;
   final rumbo = r.trazo.rumboEn(p.metros);
@@ -112,9 +120,21 @@ List<Map<String, dynamic>> casetaModelo(Parada p, {double escala = 1, double lad
   return [
     for (final q in piezasCaseta)
       pieza(q.x0, q.x1, q.y0, q.y1, q.z0, q.z1, resaltada && q.nombre.startsWith('Tira_LED') ? '#34c759' : q.color),
-    // Tótem del contador, junto a la caseta
-    pieza(3.25, 3.55, -0.85, -0.55, 0, 2.5, '#2b3237'),
-    pieza(3.18, 3.62, -0.9, -0.82, 1.3, 2.35, combiEnParada ? '#34c759' : (resaltada ? '#34c759' : '#f2c200')),
+    // Pantalla del contador colgada del techo, al frente: es parte de la caseta
+    pieza(-1.18, -1.14, -0.96, -0.92, 2.2, 2.62, '#2b3237'),
+    pieza(-0.36, -0.32, -0.96, -0.92, 2.2, 2.62, '#2b3237'),
+    pieza(-1.32, -0.18, -1.0, -0.88, 1.9, 2.22, '#11181d'),
+    pieza(-1.27, -0.23, -1.012, -0.998, 1.94, 2.18, combiEnParada || resaltada ? '#34c759' : '#f2c200'),
+    // Tapas de los botes de basura separada y un tercero para reciclables
+    pieza(2.48, 2.96, -0.09, 0.39, 0.85, 0.92, '#1f5f43'),
+    pieza(2.48, 2.96, 0.38, 0.86, 0.85, 0.92, '#4a5157'),
+    pieza(2.5, 2.94, -0.56, -0.12, 0.0, 0.85, '#1f5caa'),
+    pieza(2.48, 2.96, -0.58, -0.1, 0.85, 0.92, '#163f78'),
+    // Banca exterior de madera con patas de concreto, junto a la caseta
+    pieza(-4.75, -4.6, 0.2, 0.7, 0.0, 0.42, '#a8a29a'),
+    pieza(-3.4, -3.25, 0.2, 0.7, 0.0, 0.42, '#a8a29a'),
+    pieza(-4.85, -3.15, 0.18, 0.72, 0.42, 0.48, '#9e683c'),
+    pieza(-4.85, -3.15, 0.66, 0.74, 0.48, 0.92, '#9e683c'),
   ];
 }
 

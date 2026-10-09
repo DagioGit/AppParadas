@@ -9,6 +9,7 @@ import 'package:flutter/material.dart' show Icons;
 import 'package:latlong2/latlong.dart';
 import 'package:maplibre_gl/maplibre_gl.dart' as ml;
 
+import '../ajustes.dart';
 import '../datos/semaforos.dart';
 import '../modelo/geo.dart';
 import '../modelo/ruta.dart';
@@ -40,6 +41,11 @@ class Parada3D extends StatelessWidget {
       'd': p.desfase.toStringAsFixed(0),
       'espera': esperaEnParada.toStringAsFixed(0),
       'fin': r.salidas.last.toStringAsFixed(0),
+      'ruta': '${r.numero}',
+      'apodo': r.apodo,
+      'color': hexColor(r.color),
+      'servicio': '6:00 a 21:00',
+      if (ajustes.ajusteHora != 0) 't': segundosAhora().round().toString(),
     }).toString();
   }
 
@@ -201,7 +207,7 @@ class _Parada3DState extends State<_Parada3DMapa> {
     }
     final (llegada, donde, faltan) = _proxima(ahora);
     final etiquetas = <Map<String, dynamic>>[
-      etiqueta(p.punto, enParada ? 'Combi en la parada' : 'Próxima combi ${_texto(llegada - ahora)}', enParada ? Tema.verdeFijo : Tema.negro, prioridad: 0),
+      etiqueta(puntoEnCaseta(p, -0.75, -0.95), !enServicio(ahora) ? 'Sin combis hasta las $horaInicioServicio' : enParada ? 'Combi en la parada' : 'Próxima combi ${_texto(llegada - ahora)}', enParada ? Tema.verdeFijo : Tema.negro, prioridad: 0),
       if (donde != null && !enParada)
         etiqueta(donde, 'Viene a ${(faltan / 1000).toStringAsFixed(1)} km', r.color.computeLuminance() > 0.6 ? const Color(0xFF8A6D00) : r.color, prioridad: 1),
     ];

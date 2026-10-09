@@ -45,6 +45,7 @@ class _ViajePantallaState extends State<ViajePantalla> {
   void initState() {
     super.initState();
     destinoPedido.addListener(_alPedirDestino);
+    ajustes.addListener(_alCambiarAjustes);
     pedirBusqueda.addListener(_alPedirBusqueda);
     _vigia = Timer.periodic(const Duration(seconds: 1), (_) => _vigilar());
     _desde = desdeInicial;
@@ -73,6 +74,7 @@ class _ViajePantallaState extends State<ViajePantalla> {
   @override
   void dispose() {
     destinoPedido.removeListener(_alPedirDestino);
+    ajustes.removeListener(_alCambiarAjustes);
     _hoja.dispose();
     _vigia?.cancel();
     pedirBusqueda.removeListener(_alPedirBusqueda);
@@ -86,6 +88,15 @@ class _ViajePantallaState extends State<ViajePantalla> {
       setState(() => _desde ??= Lugar('Mi ubicación', 'Donde estás ahora', TipoLugar.ubicacion, r.punto!));
       _calcular();
     }
+  }
+
+  double _horaUsada = ajustes.ajusteHora;
+
+  /// Si cambian la hora de la app, se vuelven a buscar las combis.
+  void _alCambiarAjustes() {
+    if (ajustes.ajusteHora == _horaUsada || !mounted) return;
+    _horaUsada = ajustes.ajusteHora;
+    _calcular();
   }
 
   void _alPedirDestino() {

@@ -3,6 +3,7 @@ import 'dart:ui' show Color;
 
 import 'package:latlong2/latlong.dart';
 
+import '../ajustes.dart';
 import '../datos/rutas_datos.dart';
 import '../datos/rutas_modelo_datos.dart';
 import '../datos/semaforos.dart';
@@ -470,13 +471,10 @@ final List<Ruta> rutas = [for (final d in rutasDatos) Ruta(d)];
 
 Ruta rutaPorId(String id) => rutas.firstWhere((r) => r.id == id);
 
-/// Para probar a otra hora (versión web: ?hora=22.5): segundos que se suman al reloj.
-double ajusteReloj = 0;
-
 /// Segundos transcurridos del día de hoy.
 double segundosAhora() {
   final a = DateTime.now();
-  final s = a.hour * 3600.0 + a.minute * 60 + a.second + a.millisecond / 1000 + ajusteReloj;
+  final s = a.hour * 3600.0 + a.minute * 60 + a.second + a.millisecond / 1000 + ajustes.ajusteHora;
   return ((s % segundosDia) + segundosDia) % segundosDia;
 }
 

@@ -3,7 +3,10 @@ import 'package:flutter/material.dart' show Icons;
 import 'package:flutter/services.dart';
 
 import '../ajustes.dart';
+import '../modelo/ruta.dart';
 import '../tema.dart';
+import '../widgets/comunes.dart' show ConReloj;
+import '../widgets/selector_hora.dart';
 
 /// Ajustes con el estilo de la app: tarjetas grandes, colores de las rutas
 /// y botones fáciles de tocar para personas mayores y niños.
@@ -19,6 +22,8 @@ class AjustesPantalla extends StatelessWidget {
           padding: EdgeInsets.fromLTRB(0, MediaQuery.of(context).padding.top + 8, 0, MediaQuery.of(context).padding.bottom + 40),
           children: [
             const _Portada(),
+            const _Titulo(Icons.schedule_rounded, 'Hora de la app'),
+            _hora(context),
             const _Titulo(Icons.text_fields_rounded, 'Tamaño de letra'),
             _letra(),
             const _Titulo(Icons.visibility_rounded, 'Para ver mejor'),
@@ -37,6 +42,60 @@ class AjustesPantalla extends StatelessWidget {
   static void _cambiar(void Function(Ajustes a) f) {
     if (ajustes.vibrar) HapticFeedback.selectionClick();
     ajustes.cambiar(f);
+  }
+
+  /// Hora con la que funciona la app: la real o una elegida para probarla (por ejemplo de noche).
+  Widget _hora(BuildContext context) {
+    final cambiada = ajustes.ajusteHora != 0;
+    return _Caja(
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Row(children: [
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(color: cambiada ? Tema.amarillo : Tema.relleno, shape: BoxShape.circle),
+            child: Icon(cambiada ? Icons.edit_calendar_rounded : Icons.schedule_rounded, size: 28, color: cambiada ? Tema.negro : Tema.gris),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: ConReloj(
+              cada: const Duration(seconds: 1),
+              builder: (context, ahora) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(horaAmPm(ahora), style: Tema.texto(size: 30, weight: FontWeight.w800)),
+                Text(
+                  cambiada ? 'Hora cambiada para probar' : 'Hora real del teléfono',
+                  style: Tema.texto(size: 15, weight: FontWeight.w600, color: cambiada ? const Color(0xFFB8860B) : Tema.gris),
+                ),
+              ]),
+            ),
+          ),
+        ]),
+        const SizedBox(height: 14),
+        Row(children: [
+          Expanded(
+            child: CupertinoButton(
+              padding: EdgeInsets.symmetric(vertical: Tema.b(14)),
+              color: Tema.amarillo,
+              borderRadius: BorderRadius.circular(16),
+              onPressed: () => mostrarSelectorHora(context),
+              child: Text('Cambiar hora', style: Tema.texto(size: 17, weight: FontWeight.w800, color: Tema.negro)),
+            ),
+          ),
+          if (cambiada) ...[
+            const SizedBox(width: 10),
+            Expanded(
+              child: CupertinoButton(
+                padding: EdgeInsets.symmetric(vertical: Tema.b(14)),
+                color: Tema.fondo,
+                borderRadius: BorderRadius.circular(16),
+                onPressed: () => _cambiar((a) => a.ajusteHora = 0),
+                child: Text('Hora real', style: Tema.texto(size: 17, weight: FontWeight.w700, color: Tema.azul)),
+              ),
+            ),
+          ],
+        ]),
+      ]),
+    );
   }
 
   /// Vista previa y cinco botones con una "A" cada vez más grande.
@@ -208,7 +267,7 @@ class AjustesPantalla extends StatelessWidget {
       context: context,
       builder: (ctx) => CupertinoAlertDialog(
         title: const Text('¿Dejar como al principio?'),
-        content: const Text('La letra, los botones y los colores regresan como estaban.'),
+        content: const Text('La letra, los botones, los colores y la hora regresan como estaban.'),
         actions: [
           CupertinoDialogAction(child: const Text('No'), onPressed: () => Navigator.of(ctx).pop(false)),
           CupertinoDialogAction(isDestructiveAction: true, child: const Text('Sí'), onPressed: () => Navigator.of(ctx).pop(true)),

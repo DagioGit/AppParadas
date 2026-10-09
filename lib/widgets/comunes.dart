@@ -7,6 +7,7 @@ import 'package:latlong2/latlong.dart' show LatLng;
 import '../datos/semaforos.dart';
 import '../modelo/ruta.dart';
 import '../tema.dart';
+import 'selector_hora.dart';
 
 /// Cuadrito con el número de la ruta en su color.
 class InsigniaRuta extends StatelessWidget {
@@ -559,6 +560,19 @@ class AvisoSinServicio extends StatelessWidget {
             Text('hasta las $horaInicioServicio', style: Tema.texto(size: 19, weight: FontWeight.w800, color: Tema.rojo)),
             const SizedBox(height: 4),
             Text('Pasan de 6:00 am a 9:00 pm', style: Tema.chico),
+            const SizedBox(height: 10),
+            CupertinoButton(
+              padding: EdgeInsets.symmetric(horizontal: 14, vertical: Tema.b(9)),
+              minimumSize: Size.zero,
+              color: Tema.amarillo,
+              borderRadius: BorderRadius.circular(12),
+              onPressed: () => mostrarSelectorHora(context),
+              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                const Icon(Icons.schedule_rounded, size: 20, color: Tema.negro),
+                const SizedBox(width: 6),
+                Text('Usar otra hora', style: Tema.texto(size: 15, weight: FontWeight.w800, color: Tema.negro)),
+              ]),
+            ),
           ]),
         ),
       ]),

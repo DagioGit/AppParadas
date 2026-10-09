@@ -14,6 +14,10 @@ class Ajustes extends ChangeNotifier {
   bool contraste = false;
   bool vibrar = true;
 
+  /// Segundos que se adelanta o atrasa el reloj de la app (0 = hora real).
+  /// Sirve para usar la app a otra hora, por ejemplo de noche cuando no pasan combis.
+  double ajusteHora = 0;
+
   /// 0 = Automática (como el teléfono), 1 = Clara (de fábrica), 2 = Oscura.
   int apariencia = 1;
 
@@ -37,6 +41,7 @@ class Ajustes extends ChangeNotifier {
       contraste = p.getBool('contraste') ?? contraste;
       vibrar = p.getBool('vibrar') ?? vibrar;
       apariencia = p.getInt('apariencia') ?? apariencia;
+      ajusteHora = p.getDouble('ajusteHora') ?? ajusteHora;
     } catch (_) {
       // Sin almacenamiento (pruebas, navegador privado): se usan los valores de fábrica.
     }
@@ -56,6 +61,7 @@ class Ajustes extends ChangeNotifier {
         a.contraste = false;
         a.vibrar = true;
         a.apariencia = 1;
+        a.ajusteHora = 0;
       });
 
   Future<void> _guardar() async {
@@ -67,6 +73,7 @@ class Ajustes extends ChangeNotifier {
       await p.setBool('contraste', contraste);
       await p.setBool('vibrar', vibrar);
       await p.setInt('apariencia', apariencia);
+      await p.setDouble('ajusteHora', ajusteHora);
     } catch (_) {}
   }
 }
