@@ -4,7 +4,6 @@
 // Con GPS usa la posición real; sin GPS, avanza con el horario del viaje.
 
 import 'dart:async';
-import 'dart:math' as math;
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' show Icons;
@@ -12,7 +11,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 
-import '../modelo/geo.dart';
+import '../modelo/guia.dart';
 import '../modelo/planificador.dart';
 import '../modelo/ruta.dart';
 import '../modelo/ubicacion.dart';
@@ -29,34 +28,17 @@ class GuiaPantalla extends StatefulWidget {
   State<GuiaPantalla> createState() => _GuiaPantallaState();
 }
 
-/// Hacia dónde queda [b] desde [a]: "hacia el norte", "hacia el sureste"…
-String haciaDonde(LatLng a, LatLng b) {
-  final dx = (b.longitude - a.longitude) * math.cos(a.latitude * math.pi / 180);
-  final dy = b.latitude - a.latitude;
-  var ang = math.atan2(dx, dy) * 180 / math.pi;
-  if (ang < 0) ang += 360;
-  const nombres = ['norte', 'noreste', 'este', 'sureste', 'sur', 'suroeste', 'oeste', 'noroeste'];
-  return 'hacia el ${nombres[((ang + 22.5) ~/ 45) % 8]}';
-}
-
-String metrosHablados(double m) {
-  if (m < 20) return 'unos pasos';
-  if (m < 1000) return '${(m / 10).round() * 10} metros';
-  return '${(m / 1000).toStringAsFixed(1)} kilómetros';
-}
-
 class _GuiaPantallaState extends State<GuiaPantalla> {
-  int _i = 0; // tramo actual
+  late final MotorGuia _motor = MotorGuia(widget.opcion, widget.destino);
   LatLng? _pos; // GPS
   String? _sinGps;
   StreamSubscription<Position>? _gps;
   Timer? _reloj;
-  final Set<String> _dichos = {};
   String _titulo = 'Empezamos';
   String _detalle = '';
-  String _ultimo = '';
-  bool _fin = false;
 
+  int get _i => _motor.i;
+  bool get _fin => _motor.fin;
   List<Tramo> get _tramos => widget.opcion.tramos;
 
   @override
@@ -92,127 +74,20 @@ class _GuiaPantallaState extends State<GuiaPantalla> {
     } catch (_) {}
   }
 
-  /// Dice [texto] una sola vez por [clave].
-  void _decir(String clave, String texto) {
-    if (!_dichos.add(clave)) return;
-    _ultimo = texto;
-    Voz.decir(texto);
-  }
-
-  /// Dónde va la persona según el horario (cuando no hay GPS).
-  LatLng _posEstimada(double ahora) {
-    if (_i >= _tramos.length) return _tramos.last.hasta;
-    final t = _tramos[_i];
-    if (t.tipo == TipoTramo.combi) {
-      if (ahora < t.inicio) return t.desde;
-      final m = t.ruta!.metrosCombi(t.sube!, t.inicio, ahora);
-      return m == null ? t.hasta : t.ruta!.trazo.puntoEn(m);
-    }
-    final u = ((ahora - t.inicio) / math.max(1, t.fin - t.inicio)).clamp(0.0, 1.0);
-    return LatLng(t.desde.latitude + (t.hasta.latitude - t.desde.latitude) * u, t.desde.longitude + (t.hasta.longitude - t.desde.longitude) * u);
-  }
-
-  /// Paradas que faltan (contando la de bajada) para la combi del tramo [t] en el segundo [ahora].
-  int _paradasQueFaltan(Tramo t, double ahora) {
-    final r = t.ruta!;
-    final pas = r.pasadaDe(t.sube!, t.inicio);
-    final v = pas.vuelta;
-    final e = ahora - pas.salida;
-    final n = r.paradas.length;
-    var faltan = 0;
-    var i = t.sube!.indice;
-    var vuelta = 0.0;
-    while (i != t.baja!.indice) {
-      i = (i + 1) % n;
-      if (i == 0) vuelta = v.duracion;
-      final llega = (vuelta == 0 ? v.llegadas[i] : vuelta + r.tipica.llegadas[i]);
-      if (llega > e) faltan++;
-    }
-    return faltan;
-  }
-
   void _paso() {
-    if (!mounted || _fin) return;
-    final ahora = segundosAhora();
-    if (_i >= _tramos.length) {
-      _terminar();
-      return;
-    }
-    final t = _tramos[_i];
-    final ultimo = _i == _tramos.length - 1;
-    String titulo, detalle;
-
-    if (t.tipo == TipoTramo.pie) {
-      final aqui = _pos ?? _posEstimada(ahora);
-      final dist = _pos != null ? distanciaM(_pos!, t.hasta) : math.max(0.0, t.metros * (t.fin - ahora) / math.max(1, t.fin - t.inicio));
-      final llego = dist < 25 || (_pos == null && ahora >= t.fin);
-      if (llego || t.segundos < 20) {
-        if (ultimo) {
-          _terminar();
-          return;
-        }
-        final sig = _tramos[_i + 1];
-        _decir('llego-$_i', 'Llegaste a la parada ${sig.sube!.nombre}. Espera la ${sig.ruta!.nombre}.');
-        setState(() => _i++);
-        return;
-      }
-      final hacia = haciaDonde(aqui, t.hasta);
-      final meta = ultimo ? widget.destino : 'la parada ${t.hastaNombre}';
-      titulo = 'Camina ${metrosHablados(dist)}';
-      detalle = '$hacia, hasta $meta.';
-      _decir('pie-$_i-${(dist / 100).ceil()}', 'Camina ${metrosHablados(dist)} $hacia, hasta $meta.');
-    } else {
-      final r = t.ruta!;
-      final falta = t.inicio - ahora;
-      if (falta > 25) {
-        final min = (falta / 60).ceil();
-        titulo = 'Tu combi llega en ${falta < 60 ? '${falta.round()} s' : '$min min'}';
-        detalle = 'Espera la ${r.nombre} (${r.apodo}) en ${t.sube!.nombre}.';
-        if (min <= 5 && [5, 3, 2, 1].contains(min)) {
-          _decir('espera-$_i-$min', 'Tu combi, la ${r.nombre}, llega ${min == 1 ? 'en un minuto' : 'en $min minutos'}.');
-        } else {
-          _decir('espera-$_i', 'Espera la ${r.nombre} en ${t.sube!.nombre}. Llega ${cuandoHablado(t.inicio, ahora)}.');
-        }
-      } else if (ahora < t.inicio + 20) {
-        titulo = '¡Súbete!';
-        detalle = 'Llegó la ${r.nombre} (${r.apodo}). Bájate en ${t.baja!.nombre}.';
-        _decir('ya-viene-$_i', 'Ya llegó tu combi: la ${r.nombre}, ${r.apodo}. Súbete. Te aviso dónde bajarte.');
-      } else if (ahora < t.fin) {
-        final faltan = _paradasQueFaltan(t, ahora);
-        if (faltan <= 1) {
-          titulo = 'Bájate en la próxima';
-          detalle = 'Tu parada: ${t.baja!.nombre}. Pide la parada.';
-          _decir('proxima-$_i', 'Prepárate: bájate en la próxima parada, ${t.baja!.nombre}. Pide la parada.');
-        } else {
-          titulo = 'Faltan $faltan paradas';
-          detalle = 'Vas en la ${r.nombre}. Te bajas en ${t.baja!.nombre}.';
-          _decir('bordo-$_i-$faltan', 'Vas en la combi. Faltan $faltan paradas para bajarte en ${t.baja!.nombre}.');
-        }
-      } else {
-        _decir('baja-$_i', 'Bájate aquí: ${t.baja!.nombre}.');
-        setState(() => _i++);
-        return;
-      }
-    }
+    if (!mounted) return;
+    final e = _motor.paso(segundosAhora(), _pos);
+    if (e.decir != null) Voz.decir(e.decir!);
     setState(() {
-      _titulo = titulo;
-      _detalle = detalle;
-    });
-  }
-
-  void _terminar() {
-    _decir('fin', 'Llegaste a ${widget.destino}. Buen viaje.');
-    setState(() {
-      _fin = true;
-      _titulo = '¡Llegaste!';
-      _detalle = widget.destino;
+      _titulo = e.titulo;
+      _detalle = e.detalle;
     });
   }
 
   @override
   Widget build(BuildContext context) {
     final ahora = segundosAhora();
-    final aqui = _pos ?? _posEstimada(ahora);
+    final aqui = _pos ?? _motor.posEstimada(ahora);
     final o = widget.opcion;
     return CupertinoPageScaffold(
       navigationBar: const CupertinoNavigationBar(middle: Text('Guía por voz')),
@@ -323,7 +198,7 @@ class _GuiaPantallaState extends State<GuiaPantalla> {
                     color: Tema.verde,
                     padding: EdgeInsets.symmetric(vertical: Tema.b(16)),
                     borderRadius: BorderRadius.circular(16),
-                    onPressed: () => Voz.decir(_ultimo.isEmpty ? '$_titulo. $_detalle' : _ultimo),
+                    onPressed: () => Voz.decir(_motor.cuantoFalta(segundosAhora())),
                     child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                       const Icon(Icons.volume_up_rounded, color: Color(0xFFFFFFFF), size: 26),
                       const SizedBox(width: 8),

@@ -38,6 +38,7 @@ const tomas = [
   ["12-paradas-oscuro", "?tab=paradas&tema=oscuro&letra=1.3"],
   ["13-rutas-oscuro", "?tab=rutas&tema=oscuro"],
   ["2j-guia", "?tab=viaje&hora=10&desde=gomez%20sada&hasta=av%20lazaro%20cardenas&guia=1"],
+  ["2k-modo-voz", "?tab=viaje&hora=10&modovoz=1"],
   ["15-paradas-noche", "?tab=paradas&hora=22.5"],
   ["16-viaje-noche", "?tab=viaje&hora=22.5&desde=malecon%20de%20la%20cultura&hasta=gomez%20sada"],
   ["17-paradas-noche-oscuro", "?tab=paradas&hora=23&tema=oscuro"],

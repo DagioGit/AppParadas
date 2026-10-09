@@ -17,6 +17,9 @@ class Ajustes extends ChangeNotifier {
   /// Avisos por voz: la app dice sola las paradas, los viajes y los avisos.
   bool voz = false;
 
+  /// Modo de voz para personas ciegas: Viaje se maneja todo hablando y tocando la pantalla.
+  bool modoVoz = false;
+
   /// Segundos que se adelanta o atrasa el reloj de la app (0 = hora real).
   /// Sirve para usar la app a otra hora, por ejemplo de noche cuando no pasan combis.
   double ajusteHora = 0;
@@ -44,6 +47,7 @@ class Ajustes extends ChangeNotifier {
       contraste = p.getBool('contraste') ?? contraste;
       vibrar = p.getBool('vibrar') ?? vibrar;
       voz = p.getBool('voz') ?? voz;
+      modoVoz = p.getBool('modoVoz') ?? modoVoz;
       apariencia = p.getInt('apariencia') ?? apariencia;
       ajusteHora = p.getDouble('ajusteHora') ?? ajusteHora;
     } catch (_) {
@@ -65,6 +69,7 @@ class Ajustes extends ChangeNotifier {
         a.contraste = false;
         a.vibrar = true;
         a.voz = false;
+        a.modoVoz = false;
         a.apariencia = 1;
         a.ajusteHora = 0;
       });
@@ -78,6 +83,7 @@ class Ajustes extends ChangeNotifier {
       await p.setBool('contraste', contraste);
       await p.setBool('vibrar', vibrar);
       await p.setBool('voz', voz);
+      await p.setBool('modoVoz', modoVoz);
       await p.setInt('apariencia', apariencia);
       await p.setDouble('ajusteHora', ajusteHora);
     } catch (_) {}

@@ -10,6 +10,7 @@ import '../ajustes.dart';
 import '../voz.dart';
 import '../widgets/dictado.dart';
 import 'guia_pantalla.dart';
+import 'modo_voz.dart';
 import '../datos/lugares.dart';
 import '../estado.dart';
 import '../modelo/geo.dart';
@@ -147,6 +148,7 @@ class _ViajePantallaState extends State<ViajePantalla> {
 
   /// "Quiero ir a…": escucha el destino, toma tu ubicación como origen y busca cómo llegar.
   Future<void> _dictar() async {
+    Voz.desbloquear();
     final dicho = await escucharDestino(context);
     if (dicho == null || dicho.isEmpty || !mounted) return;
     final (deDonde, aDonde) = entenderDestino(dicho);
@@ -181,6 +183,7 @@ class _ViajePantallaState extends State<ViajePantalla> {
   }
 
   void _guiar() {
+    Voz.desbloquear();
     final ops = _opciones;
     if (ops == null || ops.isEmpty || _hasta == null) return;
     Navigator.of(context).push(CupertinoPageRoute<void>(
@@ -304,6 +307,8 @@ class _ViajePantallaState extends State<ViajePantalla> {
 
   @override
   Widget build(BuildContext context) {
+    // Modo de voz (personas ciegas): Viaje se maneja hablando y tocando la pantalla
+    if (ajustes.modoVoz) return const ModoVozPantalla(enPestana: true);
     // Siempre el mapa 3D: se toca primero dónde estás y luego a dónde vas.
     // De 21:00 a 6:00 no hay combis: no se muestran opciones.
     return _conMapa(enServicio(segundosAhora()) ? (_opciones ?? const <Opcion>[]) : const <Opcion>[]);
@@ -443,6 +448,27 @@ class _ViajePantallaState extends State<ViajePantalla> {
                           const SizedBox(width: 8),
                           Text('Di a dónde vas', style: Tema.texto(size: 20, weight: FontWeight.w800, color: const Color(0xFFFFFFFF))),
                         ]),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+                      child: Semantics(
+                        button: true,
+                        label: 'Modo de voz para personas ciegas: todo hablando',
+                        child: CupertinoButton(
+                          color: const Color(0xFF111111),
+                          padding: EdgeInsets.symmetric(vertical: Tema.b(16)),
+                          borderRadius: BorderRadius.circular(16),
+                          onPressed: () {
+                            Voz.desbloquear();
+                            Navigator.of(context).push(CupertinoPageRoute<void>(builder: (_) => const ModoVozPantalla()));
+                          },
+                          child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                            const Icon(Icons.record_voice_over_rounded, color: Tema.amarillo, size: 28),
+                            const SizedBox(width: 8),
+                            Text('Modo de voz (personas ciegas)', style: Tema.texto(size: 18, weight: FontWeight.w800, color: const Color(0xFFFFFFFF))),
+                          ]),
+                        ),
                       ),
                     ),
                   ]

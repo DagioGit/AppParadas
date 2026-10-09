@@ -4,49 +4,24 @@
 // - Los botones "Escuchar" siempre hablan.
 // - Si en Ajustes está prendido "Avisos por voz", también habla sola (avisos, viajes, paradas).
 
-import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:flutter_tts/flutter_tts.dart';
-
 import 'ajustes.dart';
+import 'voz_motor/motor.dart' as motor;
 import 'modelo/planificador.dart';
 import 'modelo/ruta.dart';
 
 class Voz {
-  static FlutterTts? _tts;
-  static bool _listo = false;
-
-  static Future<FlutterTts> _preparar() async {
-    final t = _tts ??= FlutterTts();
-    if (!_listo) {
-      _listo = true;
-      try {
-        await t.setLanguage('es-MX');
-        await t.setSpeechRate(kIsWeb ? 0.9 : 0.45); // un poco más despacio que lo normal
-        await t.setVolume(1.0);
-      } catch (_) {}
-    }
-    return t;
-  }
-
-  /// Dice [texto] (botón "Escuchar").
-  static Future<void> decir(String texto) async {
-    try {
-      final t = await _preparar();
-      await t.stop();
-      await t.speak(texto);
-    } catch (_) {}
-  }
+  /// Dice [texto] (botón "Escuchar"). En el navegador habla en el mismo toque.
+  static Future<void> decir(String texto) async => motor.hablar(texto);
 
   /// Dice [texto] sólo si "Avisos por voz" está prendido.
   static Future<void> avisar(String texto) async {
-    if (ajustes.voz) await decir(texto);
+    if (ajustes.voz || ajustes.modoVoz) motor.hablar(texto);
   }
 
-  static Future<void> callar() async {
-    try {
-      await _tts?.stop();
-    } catch (_) {}
-  }
+  static Future<void> callar() async => motor.callar();
+
+  /// Llamar al principio de cada toque que lleve a hablar (iPhone en el navegador).
+  static void desbloquear() => motor.desbloquear();
 }
 
 /// "en menos de un minuto", "en un minuto", "en 7 minutos", "a las 6:01".

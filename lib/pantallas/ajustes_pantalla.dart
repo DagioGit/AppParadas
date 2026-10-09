@@ -201,12 +201,28 @@ class AjustesPantalla extends StatelessWidget {
           titulo: 'Avisos por voz',
           activo: ajustes.voz,
           onTap: () {
+            Voz.desbloquear();
             _cambiar((a) => a.voz = !a.voz);
             if (ajustes.voz) {
               Voz.decir('Avisos por voz prendidos. Te voy a decir en voz alta cuánto falta para tu combi.');
             } else {
               Voz.callar();
             }
+          },
+        ),
+        const SizedBox(height: 12),
+        // Modo de voz: Viaje se maneja todo hablando (para personas ciegas)
+        _Mosaico(
+          icono: Icons.hearing_rounded,
+          color: const Color(0xFF111111),
+          titulo: 'Modo de voz para personas ciegas',
+          activo: ajustes.modoVoz,
+          onTap: () {
+            Voz.desbloquear();
+            _cambiar((a) => a.modoVoz = !a.modoVoz);
+            Voz.decir(ajustes.modoVoz
+                ? 'Modo de voz prendido. En la pestaña Viaje, toca la pantalla y di a dónde quieres ir.'
+                : 'Modo de voz apagado.');
           },
         ),
         const SizedBox(height: 12),

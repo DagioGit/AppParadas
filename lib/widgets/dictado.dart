@@ -3,19 +3,14 @@
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' show Icons;
-import 'package:speech_to_text/speech_recognition_result.dart';
-import 'package:speech_to_text/speech_to_text.dart';
 
+import '../escucha.dart';
 import '../tema.dart';
 import '../voz.dart';
 
-final SpeechToText _stt = SpeechToText();
-bool _iniciado = false;
-bool _disponible = false;
-
 /// Abre la hoja "Te escucho…" y regresa lo que se dijo (o null si se canceló o no se pudo).
-Future<String?> escucharDestino(BuildContext context) async {
-  await Voz.callar();
+Future<String?> escucharDestino(BuildContext context) {
+  Voz.callar();
   return showCupertinoModalPopup<String>(context: context, builder: (_) => const _HojaDictado());
 }
 
@@ -39,62 +34,30 @@ class _HojaDictadoState extends State<_HojaDictado> {
 
   @override
   void dispose() {
-    _stt.stop();
+    Escucha.parar();
     super.dispose();
   }
 
   Future<void> _empezar() async {
-    try {
-      if (!_iniciado) {
-        _iniciado = true;
-        _disponible = await _stt.initialize(
-          onStatus: (s) {
-            if (!mounted) return;
-            if (s == 'done' || s == 'notListening') setState(() => _oyendo = false);
-          },
-          onError: (e) {
-            if (mounted) setState(() => _problema = 'No te escuché bien. Toca el micrófono e inténtalo otra vez.');
-          },
-        );
-      }
-      if (!_disponible) {
-        setState(() => _problema = 'Este teléfono no deja usar el micrófono para dictar. Escribe el lugar arriba.');
-        return;
-      }
-      // Español de México si el teléfono lo tiene
-      String? idioma;
-      try {
-        final idiomas = await _stt.locales();
-        idioma = idiomas.where((l) => l.localeId.toLowerCase().replaceAll('-', '_') == 'es_mx').map((l) => l.localeId).firstOrNull ??
-            idiomas.where((l) => l.localeId.toLowerCase().startsWith('es')).map((l) => l.localeId).firstOrNull;
-      } catch (_) {}
-      setState(() {
-        _oyendo = true;
-        _problema = null;
-        _texto = '';
-      });
-      await _stt.listen(
-        onResult: _resultado,
-        listenOptions: SpeechListenOptions(
-          localeId: idioma,
-          listenFor: const Duration(seconds: 12),
-          pauseFor: const Duration(seconds: 3),
-          partialResults: true,
-          listenMode: ListenMode.search,
-          cancelOnError: true,
-        ),
-      );
-    } catch (_) {
-      if (mounted) setState(() => _problema = 'No se pudo usar el micrófono. Escribe el lugar arriba.');
-    }
-  }
-
-  void _resultado(SpeechRecognitionResult r) {
+    setState(() {
+      _oyendo = true;
+      _problema = null;
+      _texto = '';
+    });
+    final dicho = await Escucha.unaVez(parcial: (t) {
+      if (mounted) setState(() => _texto = t);
+    });
     if (!mounted) return;
-    setState(() => _texto = r.recognizedWords);
-    if (r.finalResult && r.recognizedWords.trim().isNotEmpty) {
-      Navigator.of(context).pop(r.recognizedWords.trim());
+    if (dicho != null && dicho.isNotEmpty) {
+      Navigator.of(context).pop(dicho);
+      return;
     }
+    setState(() {
+      _oyendo = false;
+      _problema = Escucha.disponible
+          ? 'No te escuché bien. Toca el micrófono e inténtalo otra vez.'
+          : 'Este teléfono o navegador no deja usar el micrófono para dictar. Escribe el lugar arriba.';
+    });
   }
 
   @override
