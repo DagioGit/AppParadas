@@ -1,11 +1,11 @@
-name: Semáforos de OpenStreetMap
+name: Datos de OpenStreetMap
 
-# Descarga los semáforos de la ciudad y guarda lib/datos/semaforos_osm.dart.
+# Descarga los semáforos y las calles de la ciudad (lib/datos/semaforos_osm.dart y calles_osm.dart).
 on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: [herramientas/osm_semaforos.mjs]
+    paths: [herramientas/osm_semaforos.mjs, herramientas/osm_calles.mjs]
 
 permissions:
   contents: write
@@ -21,12 +21,14 @@ jobs:
         with:
           node-version: "20"
       - name: Descargar y convertir
-        run: bash herramientas/con_resumen.sh node herramientas/osm_semaforos.mjs
+        run: |
+          bash herramientas/con_resumen.sh node herramientas/osm_semaforos.mjs
+          bash herramientas/con_resumen.sh node herramientas/osm_calles.mjs
       - name: Guardar
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add lib/datos/semaforos_osm.dart
-          git commit -m "Semáforos de la ciudad (OpenStreetMap)" || exit 0
+          git add lib/datos/semaforos_osm.dart lib/datos/calles_osm.dart
+          git commit -m "Semáforos y calles de la ciudad (OpenStreetMap)" || exit 0
           git pull --rebase origin main
           git push
