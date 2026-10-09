@@ -166,10 +166,10 @@ class _FilaLlegada extends StatelessWidget {
             ),
             child: Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
               Text(
-                llegando ? 'Ya está' : falta < 60 ? '${falta.round()} s' : falta < 3600 ? '${(falta / 60).ceil()} min' : hora(llegada),
+                llegando ? 'Ya está' : falta < 60 ? '${falta.round()} s' : falta < 3600 ? '${(falta / 60).ceil()} min' : hora(llegada).replaceFirst('mañana ', ''),
                 style: Tema.texto(size: 24, weight: FontWeight.w800, color: llegando ? Tema.verde : Tema.tinta),
               ),
-              Text(hora(llegada), style: Tema.chico),
+              Text(falta < 3600 ? hora(llegada) : (llegada >= segundosDia ? 'mañana' : 'hoy'), style: Tema.chico),
             ]),
           ),
           GestureDetector(
