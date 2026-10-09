@@ -1,0 +1,32 @@
+name: Semáforos de OpenStreetMap
+
+# Descarga los semáforos de la ciudad y guarda lib/datos/semaforos_osm.dart.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [herramientas/osm_semaforos.mjs]
+
+permissions:
+  contents: write
+
+jobs:
+  osm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Descargar y convertir
+        run: node herramientas/osm_semaforos.mjs
+      - name: Guardar
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add lib/datos/semaforos_osm.dart
+          git commit -m "Semáforos de la ciudad (OpenStreetMap)" || exit 0
+          git pull --rebase origin main
+          git push
