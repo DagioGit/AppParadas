@@ -46,6 +46,8 @@ class Parada3D extends StatelessWidget {
       'color': hexColor(r.color),
       'servicio': '6:00 a 21:00',
       if (ajustes.ajusteHora != 0) 't': segundosAhora().round().toString(),
+      // Llegadas exactas de la simulación, para que la pantalla de la caseta diga lo mismo que la app
+      'llegadas': [for (final (a, d) in r.llegadasDelDia(p, segundosAhora() - 120)) '${a.round()}_${d.round()}'].join(','),
     }).toString();
   }
 

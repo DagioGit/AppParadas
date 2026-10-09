@@ -234,6 +234,14 @@ class Vuelta {
     return p != null && p.detenida ? p.pausa : null;
   }
 
+  /// Segundos que esta combi se queda en la parada [p].
+  double esperaEn(Parada p) {
+    for (final x in _pedazos) {
+      if (x.detenida && identical(x.pausa?.parada, p)) return x.t1 - x.t0;
+    }
+    return 0;
+  }
+
   /// Velocidad en km/h [e] segundos después de salir.
   double kmhA(double e) => ((metrosA(e + 0.5) - metrosA(e - 0.5)) * 3.6).clamp(0, 80).toDouble();
 }
@@ -435,6 +443,20 @@ class Ruta {
 
   /// Minutos que tarda una vuelta completa (típica).
   double get vueltaMin => duracion / 60;
+
+  /// Todas las llegadas de hoy a [p] desde el segundo [desde], y la primera de mañana (+86400):
+  /// (segundo del día en que llega, segundos que se queda).
+  List<(double, double)> llegadasDelDia(Parada p, double desde) {
+    final r = <(double, double)>[];
+    for (var k = 0; k < salidas.length; k++) {
+      final v = vuelta(k);
+      final a = salidas[k] + v.llegadas[p.indice];
+      if (a + v.esperaEn(p) >= desde) r.add((a, v.esperaEn(p)));
+    }
+    final v0 = vuelta(0);
+    r.add((segundosDia + salidas[0] + v0.llegadas[p.indice], v0.esperaEn(p)));
+    return r;
+  }
 
   /// ¿Hay una combi detenida en la parada [p] en el segundo [t]?
   bool combiEnParada(Parada p, double t) => combisEn(t).any((c) => identical(c.pausa?.parada, p));
