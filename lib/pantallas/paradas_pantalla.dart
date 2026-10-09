@@ -126,21 +126,21 @@ class _FilaLlegada extends StatelessWidget {
         ),
         child: Row(children: [
           Container(
-            width: 40,
-            height: 40,
+            width: 34,
+            height: 34,
             alignment: Alignment.center,
             decoration: BoxDecoration(color: r.color, shape: BoxShape.circle),
-            child: Text('$numero', style: Tema.texto(size: 18, weight: FontWeight.w800, color: claro ? Tema.negro : Tema.blanco)),
+            child: Text('$numero', style: Tema.texto(size: 16, weight: FontWeight.w800, color: claro ? Tema.negro : Tema.blanco)),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 10),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(parada.nombre, style: Tema.texto(size: 19, weight: FontWeight.w700)),
+              FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft, child: Text(parada.nombre.replaceFirst(' ', '\n'), maxLines: 2, style: Tema.texto(size: 19, weight: FontWeight.w700))),
             ]),
           ),
           const SizedBox(width: 8),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
             decoration: BoxDecoration(
               color: llegando ? Tema.verdeClaro : const Color(0x00000000),
               borderRadius: BorderRadius.circular(8),
@@ -157,7 +157,7 @@ class _FilaLlegada extends StatelessWidget {
             onTap: () => Navigator.of(context).push(CupertinoPageRoute<void>(builder: (_) => Parada3D(parada: parada))),
             child: Container(
               margin: const EdgeInsets.only(left: 4),
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(color: Tema.amarillo, borderRadius: BorderRadius.circular(10)),
               child: Icon(Icons.view_in_ar_rounded, size: Tema.b(26), color: Tema.negro),
             ),
