@@ -130,12 +130,12 @@ class _MapaViaje3DState extends State<MapaViaje3D> {
     final lat = (minLat + maxLat) / 2;
     final alto = (maxLat - minLat) * 110574;
     final ancho = (maxLng - minLng) * 111320 * math.cos(lat * math.pi / 180);
-    final tramo = math.max(math.max(alto, ancho) * 1.15, 350.0);
+    final tramo = math.max(math.max(alto, ancho) * 0.95, 350.0);
     final zoom = (math.log(78271.5 * math.cos(lat * math.pi / 180) * 390 / tramo) / math.ln2).clamp(12.5, 17.0);
     return ml.CameraPosition(
-      target: ml.LatLng(lat - (maxLat - minLat) * 0.12, (minLng + maxLng) / 2),
+      target: ml.LatLng(lat - (maxLat - minLat) * 0.18, (minLng + maxLng) / 2),
       zoom: zoom.toDouble(),
-      tilt: 50,
+      tilt: 38,
       bearing: -20,
     );
   }
