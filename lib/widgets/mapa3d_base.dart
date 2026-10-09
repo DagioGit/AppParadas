@@ -106,7 +106,7 @@ Future<void> prepararEscena(ml.MapLibreMapController c) async {
     ),
   );
   await c.addFillExtrusionLayer('combis', 'combis-3d', extrusion);
-  await c.addFillExtrusionLayer('pines', 'pines-3d', extrusion);
+
   await c.addCircleLayer(
     'paradas-puntos',
     'paradas-punto',
@@ -118,6 +118,22 @@ Future<void> prepararEscena(ml.MapLibreMapController c) async {
     'combis-punto',
     ml.CircleLayerProperties(circleRadius: ['get', 'radio'], circleColor: ['get', 'color'], circleStrokeColor: '#ffffff', circleStrokeWidth: 2.5),
     maxzoom: 16.2,
+  );
+  // Dónde estás y a dónde vas: íconos 2D (círculo con la flecha de Viaje y pin)
+  try {
+    await c.addImage('origen', await iconoOrigenPng());
+    await c.addImage('destino', await iconoDestinoPng());
+  } catch (_) {}
+  await c.addSymbolLayer(
+    'pines',
+    'pines-2d',
+    ml.SymbolLayerProperties(
+      iconImage: ['get', 'icono'],
+      iconSize: 0.5,
+      iconAnchor: ['match', ['get', 'tipo'], 'destino', 'bottom', 'center'],
+      iconAllowOverlap: true,
+      iconIgnorePlacement: true,
+    ),
   );
   await c.addSymbolLayer(
     'combis-puntos',
@@ -153,6 +169,59 @@ Future<void> prepararEscena(ml.MapLibreMapController c) async {
 }
 
 /// Dibuja el ícono del semáforo (caja negra con luz roja, amarilla y verde y su poste) como PNG.
+Future<Uint8List> _png(ui.Picture p, int w, int h) async {
+  final img = await p.toImage(w, h);
+  final datos = await img.toByteData(format: ui.ImageByteFormat.png);
+  return datos!.buffer.asUint8List();
+}
+
+/// Flecha de Viaje (la de la pestaña) dentro de un cuadro de 24 × 24, escalada a [s] y movida a [o].
+ui.Path flechaViaje(double s, ui.Offset o) {
+  final k = s / 24;
+  ui.Offset q(double x, double y) => ui.Offset(o.dx + x * k, o.dy + y * k);
+  final a = q(21, 3), b = q(3, 10.5), c = q(10.3, 13.7), d = q(13.5, 21);
+  return ui.Path()
+    ..moveTo(a.dx, a.dy)
+    ..lineTo(b.dx, b.dy)
+    ..lineTo(c.dx, c.dy)
+    ..lineTo(d.dx, d.dy)
+    ..close();
+}
+
+/// Dónde estás: círculo azul con borde blanco y la flecha de Viaje (96 px, se dibuja a la mitad).
+Future<Uint8List> iconoOrigenPng() async {
+  const t = 96.0;
+  final g = ui.PictureRecorder();
+  final c = ui.Canvas(g);
+  c.drawCircle(const ui.Offset(t / 2, t / 2 + 2), 42, ui.Paint()..color = const ui.Color(0x40000000));
+  c.drawCircle(const ui.Offset(t / 2, t / 2), 42, ui.Paint()..color = const ui.Color(0xFFFFFFFF));
+  c.drawCircle(const ui.Offset(t / 2, t / 2), 35, ui.Paint()..color = const ui.Color(0xFF0A84FF));
+  c.drawPath(flechaViaje(44, const ui.Offset(t / 2 - 23, t / 2 - 21)), ui.Paint()..color = const ui.Color(0xFFFFFFFF));
+  return _png(g.endRecording(), t.toInt(), t.toInt());
+}
+
+/// A dónde vas: pin de ubicación rojo con borde blanco y punto blanco (la punta abajo).
+Future<Uint8List> iconoDestinoPng() async {
+  const w = 80.0, h = 108.0;
+  final g = ui.PictureRecorder();
+  final c = ui.Canvas(g);
+  ui.Path pin(double r, double cy, double punta) {
+    const cx = w / 2;
+    return ui.Path()
+      ..moveTo(cx, punta)
+      ..cubicTo(cx - r * 0.55, punta - r * 1.0, cx - r, cy + r * 0.55, cx - r, cy)
+      ..arcToPoint(ui.Offset(cx + r, cy), radius: ui.Radius.circular(r))
+      ..cubicTo(cx + r, cy + r * 0.55, cx + r * 0.55, punta - r * 1.0, cx, punta)
+      ..close();
+  }
+
+  c.drawPath(pin(34, 38, h - 2).shift(const ui.Offset(0, 2)), ui.Paint()..color = const ui.Color(0x40000000));
+  c.drawPath(pin(34, 38, h - 4), ui.Paint()..color = const ui.Color(0xFFFFFFFF));
+  c.drawPath(pin(28, 38, h - 14), ui.Paint()..color = const ui.Color(0xFFFF3B30));
+  c.drawCircle(const ui.Offset(w / 2, 38), 11, ui.Paint()..color = const ui.Color(0xFFFFFFFF));
+  return _png(g.endRecording(), w.toInt(), h.toInt());
+}
+
 Future<Uint8List> iconoSemaforoPng() async {
   const w = 44.0, h = 104.0;
   final grabadora = ui.PictureRecorder();

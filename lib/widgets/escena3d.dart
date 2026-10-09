@@ -221,11 +221,10 @@ Map<String, dynamic> geoCombis(Iterable<Ruta> rs, double ahora, {Set<String> res
 
 // ---------------- Origen, destino y viaje ----------------
 
-Map<String, dynamic> geoPines(LatLng origen, LatLng? destino) => coleccion([
-      caja(circulo(origen, 4.5), '#0a84ff', 0, 16, {'tipo': 'origen'}),
-      caja(circulo(origen, 7.5), '#ffffff', 16, 18, {'tipo': 'origen'}),
-      if (destino != null) caja(circulo(destino, 4.5), '#ff3b30', 0, 22, {'tipo': 'destino'}),
-      if (destino != null) caja(rectangulo(destino, 9, 1.2, math.pi / 2, adelante: 4.5), '#ff3b30', 15, 22, {'tipo': 'destino'}),
+/// Dónde estás (círculo azul con la flecha de Viaje) y a dónde vas (pin rojo), en 2D sobre el mapa.
+Map<String, dynamic> geoPines(LatLng? origen, LatLng? destino) => coleccion([
+      if (origen != null) punto(origen, {'tipo': 'origen', 'icono': 'origen'}),
+      if (destino != null) punto(destino, {'tipo': 'destino', 'icono': 'destino'}),
     ]);
 
 Map<String, dynamic> geoViaje(Opcion? o) => coleccion([

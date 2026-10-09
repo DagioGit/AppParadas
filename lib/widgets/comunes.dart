@@ -579,3 +579,36 @@ class AvisoSinServicio extends StatelessWidget {
     );
   }
 }
+
+/// Dónde estás: círculo azul con la flecha de Viaje (igual que en el mapa).
+class IconoOrigen extends StatelessWidget {
+  final double tam;
+  const IconoOrigen({super.key, this.tam = 24});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: tam,
+      height: tam,
+      decoration: BoxDecoration(
+        color: Tema.azul,
+        shape: BoxShape.circle,
+        border: Border.all(color: const Color(0xFFFFFFFF), width: tam * 0.1),
+        boxShadow: const [BoxShadow(color: Color(0x40000000), blurRadius: 4, offset: Offset(0, 1))],
+      ),
+      child: Icon(Icons.near_me_rounded, size: tam * 0.58, color: const Color(0xFFFFFFFF)),
+    );
+  }
+}
+
+/// Marcador 2D de dónde estás (círculo con la flecha de Viaje).
+Marker marcadorOrigen(LatLng p, {double tam = 30}) => Marker(point: p, width: tam, height: tam, child: IconoOrigen(tam: tam));
+
+/// Marcador 2D de a dónde vas (pin de ubicación con la punta en el lugar).
+Marker marcadorDestino(LatLng p, {double tam = 44}) => Marker(
+      point: p,
+      width: tam,
+      height: tam,
+      alignment: Alignment.topCenter,
+      child: Icon(Icons.location_on_rounded, size: tam, color: const Color(0xFFFF3B30), shadows: const [Shadow(color: Color(0x55000000), blurRadius: 4, offset: Offset(0, 2))]),
+    );

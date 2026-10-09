@@ -138,8 +138,8 @@ class _MapaViajeState extends State<MapaViaje> {
                   marcadorParada(t.sube!, tam: 18),
                   marcadorParada(t.baja!, tam: 18),
                 ],
-              marcadorPunto(widget.origen.punto, color: Tema.azul, tam: 22),
-              marcadorPunto(widget.destino.punto, color: const Color(0xFFFF3B30), icono: Icons.flag_rounded, tam: 30),
+              marcadorOrigen(widget.origen.punto, tam: 28),
+              marcadorDestino(widget.destino.punto, tam: 42),
             ]),
             // Combis acercándose y etiquetas con cuenta regresiva (se actualizan solas)
             if (principal != null)

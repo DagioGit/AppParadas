@@ -157,9 +157,7 @@ class _MapaViaje3DState extends State<MapaViaje3D> {
           ...caseta(t.baja!, resaltada: identical(o, sel)),
         ],
     ]));
-    await c.setGeoJsonSource('pines', widget.origen == null
-        ? coleccion([if (widget.destino != null) ...((geoPines(widget.destino!.punto, null)['features'] as List).cast<Map<String, dynamic>>())])
-        : geoPines(widget.origen!.punto, widget.destino?.punto));
+    await c.setGeoJsonSource('pines', geoPines(widget.origen?.punto, widget.destino?.punto));
     await c.setGeoJsonSource('pie', coleccion([
       for (var i = 0; i < widget.opciones.length; i++)
         for (final t in widget.opciones[i].tramos)

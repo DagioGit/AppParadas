@@ -425,19 +425,15 @@ class _ViajePantallaState extends State<ViajePantalla> {
   }
 
   Widget _formulario() {
-    Widget campo(String etiqueta, Lugar? l, Color punto, VoidCallback onTap) {
+    Widget campo(String etiqueta, Lugar? l, Widget icono, VoidCallback onTap) {
       return GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 12),
           child: Row(children: [
-            Container(
-              width: 12,
-              height: 12,
-              decoration: BoxDecoration(color: punto, shape: BoxShape.circle),
-            ),
-            const SizedBox(width: 14),
+            SizedBox(width: 28, child: Center(child: icono)),
+            const SizedBox(width: 10),
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text(etiqueta, style: Tema.etiqueta),
@@ -460,9 +456,9 @@ class _ViajePantallaState extends State<ViajePantalla> {
       child: Row(children: [
         Expanded(
           child: Column(children: [
-            campo('DESDE', _desde, Tema.azul, () => _elegir(destino: false)),
-            Container(height: 0.5, color: Tema.linea, margin: const EdgeInsets.only(left: 26)),
-            campo('HASTA', _hasta, const Color(0xFFFF3B30), () => _elegir(destino: true)),
+            campo('DESDE', _desde, const IconoOrigen(tam: 26), () => _elegir(destino: false)),
+            Container(height: 0.5, color: Tema.linea, margin: const EdgeInsets.only(left: 38)),
+            campo('HASTA', _hasta, const Icon(Icons.location_on_rounded, color: Color(0xFFFF3B30), size: 30), () => _elegir(destino: true)),
           ]),
         ),
         CupertinoButton(
