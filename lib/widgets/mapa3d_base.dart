@@ -1,6 +1,9 @@
 // Capas comunes de los mapas 3D (MapLibre): edificios, rutas, viaje, casetas, semáforos,
 // combis, pines y etiquetas. Cada pantalla sólo cambia los datos con setGeoJsonSource.
 
+import 'dart:typed_data';
+import 'dart:ui' as ui;
+
 import 'package:maplibre_gl/maplibre_gl.dart' as ml;
 
 import 'escena3d.dart';
@@ -87,7 +90,21 @@ Future<void> prepararEscena(ml.MapLibreMapController c) async {
     fillExtrusionOpacity: 1.0,
   );
   await c.addFillExtrusionLayer('casetas', 'casetas-3d', extrusion);
-  await c.addFillExtrusionLayer('semaforos', 'semaforos-3d', extrusion);
+  // Semáforos: ícono 2D (siempre de frente a la cámara)
+  try {
+    await c.addImage('semaforo', await iconoSemaforoPng());
+  } catch (_) {}
+  await c.addSymbolLayer(
+    'semaforos',
+    'semaforos-3d',
+    ml.SymbolLayerProperties(
+      iconImage: 'semaforo',
+      iconSize: 0.5,
+      iconAnchor: 'bottom',
+      iconAllowOverlap: true,
+      iconIgnorePlacement: true,
+    ),
+  );
   await c.addFillExtrusionLayer('combis', 'combis-3d', extrusion);
   await c.addFillExtrusionLayer('pines', 'pines-3d', extrusion);
   await c.addCircleLayer(
@@ -133,4 +150,25 @@ Future<void> prepararEscena(ml.MapLibreMapController c) async {
       textMaxWidth: 14,
     ),
   );
+}
+
+/// Dibuja el ícono del semáforo (caja negra con luz roja, amarilla y verde y su poste) como PNG.
+Future<Uint8List> iconoSemaforoPng() async {
+  const w = 44.0, h = 104.0;
+  final grabadora = ui.PictureRecorder();
+  final c = ui.Canvas(grabadora);
+  final negro = ui.Paint()..color = const ui.Color(0xFF1C1C1E);
+  final blanco = ui.Paint()..color = const ui.Color(0xFFFFFFFF);
+  // poste
+  c.drawRect(const ui.Rect.fromLTWH(w / 2 - 3, 66, 6, 38), negro);
+  // caja con borde blanco
+  c.drawRRect(ui.RRect.fromRectAndRadius(const ui.Rect.fromLTWH(2, 2, w - 4, 66), const ui.Radius.circular(9)), blanco);
+  c.drawRRect(ui.RRect.fromRectAndRadius(const ui.Rect.fromLTWH(5, 5, w - 10, 60), const ui.Radius.circular(7)), negro);
+  const luces = [ui.Color(0xFFFF453A), ui.Color(0xFFFFD60A), ui.Color(0xFF30D158)];
+  for (var i = 0; i < 3; i++) {
+    c.drawCircle(ui.Offset(w / 2, 16 + i * 19.0), 7.5, ui.Paint()..color = luces[i]);
+  }
+  final img = await grabadora.endRecording().toImage(w.toInt(), h.toInt());
+  final datos = await img.toByteData(format: ui.ImageByteFormat.png);
+  return datos!.buffer.asUint8List();
 }

@@ -130,14 +130,9 @@ Map<String, dynamic> geoCasetas(Iterable<Ruta> rs, {Set<String> resaltadas = con
 
 // ---------------- Semáforos ----------------
 
+/// Semáforos como puntos: el mapa les pone el ícono 2D del semáforo.
 Map<String, dynamic> geoSemaforos() => coleccion([
-      for (var i = 0; i < semaforos.length; i++) ...[
-        caja(circulo(semaforos[i].punto, 0.9, lados: 8), '#1c1c1e', 0, 11, {'tipo': 'semaforo', 'ref': '$i'}),
-        caja(rectangulo(semaforos[i].punto, 2.4, 2.4, 0), '#1c1c1e', 8, 15.5, {'tipo': 'semaforo', 'ref': '$i'}),
-        caja(rectangulo(semaforos[i].punto, 2.8, 2.8, 0), '#ff453a', 13.6, 15, {'tipo': 'semaforo', 'ref': '$i'}),
-        caja(rectangulo(semaforos[i].punto, 2.8, 2.8, 0), '#ffd60a', 11.6, 13, {'tipo': 'semaforo', 'ref': '$i'}),
-        caja(rectangulo(semaforos[i].punto, 2.8, 2.8, 0), '#30d158', 9.6, 11, {'tipo': 'semaforo', 'ref': '$i'}),
-      ],
+      for (var i = 0; i < semaforos.length; i++) punto(semaforos[i].punto, {'tipo': 'semaforo', 'ref': '$i'}),
     ]);
 
 // ---------------- Combis ----------------

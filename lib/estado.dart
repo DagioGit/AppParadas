@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 
 import 'datos/lugares.dart';
 
-/// Pestañas: 0 Mapa, 1 Viaje, 2 Paradas, 3 Rutas.
+/// Pestañas: 0 Viaje, 1 Paradas, 2 Rutas.
 final CupertinoTabController pestanas = CupertinoTabController();
 
 /// Cuando otra pantalla quiere planear un viaje hacia un lugar (por ejemplo, "Ir aquí" en una parada).
@@ -15,7 +15,7 @@ final ValueNotifier<int> pedirBusqueda = ValueNotifier<int>(0);
 bool busquedaPendiente = false;
 
 void irAViaje({Lugar? destino}) {
-  pestanas.index = 1;
+  pestanas.index = 0;
   if (destino != null) {
     destinoPedido.value = destino;
   } else {
@@ -30,6 +30,3 @@ Lugar? hastaInicial;
 
 /// Abrir el detalle de la opción más rápida al iniciar (?detalle=1).
 bool detalleInicial = false;
-
-/// Destino que el mapa principal muestra al abrir (?hacia=…).
-Lugar? destinoMapaInicial;

@@ -26,8 +26,7 @@ const pagina = await ctx.newPage();
 pagina.on("console", m => { if (m.type() === "error") console.log("consola:", m.text()); });
 
 const tomas = [
-  ["1-mapa", ""],
-  ["1b-mapa-viaje", "?hacia=malecon%20de%20la%20cultura"],
+  ["1-inicio", ""],
   ["2-viaje", "?tab=viaje&desde=malecon%20de%20la%20cultura&hasta=gomez%20sada"],
   ["2c-parada3d", "?parada3d=R1-4i"],
   ["3-rutas", "?tab=rutas"],
@@ -37,20 +36,10 @@ const tomas = [
 ];
 for (const [nombre, q] of tomas) {
   await pagina.goto("http://localhost:8099" + BASE + q, { waitUntil: "load" });
-  await pagina.waitForTimeout(q === "" || q.startsWith("?hacia") || q.includes("tab=viaje") || q.includes("parada3d") ? 20000 : 12000);
+  await pagina.waitForTimeout(q === "" || q.startsWith("?hacia") || q.includes("tab=viaje") || q.includes("parada3d") ? 30000 : 12000);
   await pagina.screenshot({ path: path.join(salida, nombre + ".png") });
   console.log("captura", nombre);
 }
-
-// Arrastrar hacia abajo el panel "Combis cerca de ti"
-await pagina.goto("http://localhost:8099" + BASE, { waitUntil: "load" });
-await pagina.waitForTimeout(15000);
-await pagina.mouse.move(195, 540);
-await pagina.mouse.down();
-for (let y = 540; y <= 790; y += 25) { await pagina.mouse.move(195, y); await pagina.waitForTimeout(30); }
-await pagina.mouse.up();
-await pagina.waitForTimeout(2500);
-await pagina.screenshot({ path: path.join(salida, "1c-hoja-abajo.png") });
 
 // Viaje marcando con clics: primero dónde estás y luego a dónde vas
 await pagina.goto("http://localhost:8099" + BASE + "?tab=viaje", { waitUntil: "load" });

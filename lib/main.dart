@@ -8,7 +8,6 @@ import 'datos/lugares.dart';
 import 'estado.dart';
 import 'modelo/ruta.dart';
 import 'pantallas/buscar_lugar.dart';
-import 'pantallas/mapa_pantalla.dart';
 import 'pantallas/parada_3d.dart';
 import 'pantallas/paradas_pantalla.dart';
 import 'pantallas/rutas_pantalla.dart';
@@ -58,11 +57,10 @@ void leerEnlace() {
   desdeInicial = buscar(q['desde']);
   hastaInicial = buscar(q['hasta']);
   detalleInicial = q['detalle'] == '1';
-  destinoMapaInicial = buscar(q['hacia']);
+  hastaInicial ??= buscar(q['hacia']);
   final tab = q['tab'];
-  if (tab == 'viaje' || hastaInicial != null) pestanas.index = 1;
-  if (tab == 'paradas') pestanas.index = 2;
-  if (tab == 'rutas') pestanas.index = 3;
+  if (tab == 'paradas') pestanas.index = 1;
+  if (tab == 'rutas') pestanas.index = 2;
 }
 
 class Inicio extends StatefulWidget {
@@ -100,7 +98,6 @@ class _InicioState extends State<Inicio> {
         activeColor: Tema.tinta,
         inactiveColor: Tema.grisClaro,
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.map_rounded), label: 'Mapa'),
           BottomNavigationBarItem(icon: Icon(Icons.near_me_rounded), label: 'Viaje'),
           BottomNavigationBarItem(icon: Icon(Icons.place_rounded), label: 'Paradas'),
           BottomNavigationBarItem(icon: Icon(Icons.directions_bus_rounded), label: 'Rutas'),
@@ -110,10 +107,8 @@ class _InicioState extends State<Inicio> {
         return CupertinoTabView(builder: (context) {
           switch (i) {
             case 0:
-              return const MapaPantalla();
-            case 1:
               return const ViajePantalla();
-            case 2:
+            case 1:
               return const ParadasPantalla();
             default:
               return const RutasPantalla();

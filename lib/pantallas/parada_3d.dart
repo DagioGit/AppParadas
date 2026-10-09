@@ -16,16 +16,124 @@ import '../tema.dart';
 import '../widgets/comunes.dart';
 import '../widgets/escena3d.dart';
 import '../widgets/mapa3d_base.dart';
+import '../widgets/web/vista_web.dart';
 
-class Parada3D extends StatefulWidget {
+/// Visor 3D de la página web (las mismas maquetas con árboles, edificios, gente y la combi).
+const String urlVisor = 'https://dagiogit.github.io/rutas-lzc/visor.html';
+
+/// "Ver parada en 3D": para la Ruta 1 y la Ruta 2 abre la maqueta de la página web;
+/// para las rutas simuladas, una vista 3D sobre el mapa.
+class Parada3D extends StatelessWidget {
   final Parada parada;
   const Parada3D({super.key, required this.parada});
 
+  static String? urlPara(Parada p) {
+    final r = p.ruta;
+    final zona = r.id == 'R1' ? p.id : (r.id == 'R2' ? p.id.replaceFirst('R2-', '') : null);
+    if (zona == null) return null;
+    return Uri.parse(urlVisor).replace(queryParameters: {
+      'zona': zona,
+      'nombre': p.nombre,
+      'lat': p.punto.latitude.toStringAsFixed(6),
+      'lng': p.punto.longitude.toStringAsFixed(6),
+      'f': '${r.frecuenciaMin}',
+      'd': p.desfase.toStringAsFixed(0),
+      'espera': esperaEnParada.toStringAsFixed(0),
+    }).toString();
+  }
+
   @override
-  State<Parada3D> createState() => _Parada3DState();
+  Widget build(BuildContext context) {
+    final url = urlPara(parada);
+    return url == null ? _Parada3DMapa(parada: parada) : _ParadaVisorWeb(parada: parada, url: url);
+  }
 }
 
-class _Parada3DState extends State<Parada3D> {
+class _ParadaVisorWeb extends StatelessWidget {
+  final Parada parada;
+  final String url;
+  const _ParadaVisorWeb({required this.parada, required this.url});
+
+  @override
+  Widget build(BuildContext context) {
+    final p = parada, r = parada.ruta;
+    final arriba = MediaQuery.of(context).padding.top;
+    final abajo = MediaQuery.of(context).padding.bottom;
+    return CupertinoPageScaffold(
+      backgroundColor: const Color(0xFFE6EEF3),
+      child: Stack(children: [
+        Positioned.fill(child: vistaWeb(url)),
+        Positioned(
+          left: 12,
+          top: arriba + 8,
+          right: 12,
+          child: Row(children: [
+            GestureDetector(
+              onTap: () => Navigator.of(context).pop(),
+              child: Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(color: Tema.tarjeta, shape: BoxShape.circle, boxShadow: Tema.sombra),
+                child: const Icon(CupertinoIcons.back, color: Tema.tinta, size: 22),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Flexible(
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(6, 6, 14, 6),
+                decoration: BoxDecoration(color: Tema.tarjeta, borderRadius: BorderRadius.circular(21), boxShadow: Tema.sombra),
+                child: Row(mainAxisSize: MainAxisSize.min, children: [
+                  InsigniaRuta(r, tam: 28),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Text(p.nombre, maxLines: 1, overflow: TextOverflow.ellipsis, style: Tema.texto(size: 16, weight: FontWeight.w700)),
+                  ),
+                ]),
+              ),
+            ),
+          ]),
+        ),
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: abajo + 14,
+          child: Center(
+            child: ConReloj(
+              cada: const Duration(seconds: 1),
+              builder: (context, ahora) {
+                final llegada = r.proximaLlegada(p, ahora);
+                final falta = llegada - ahora;
+                final enParada = falta > r.frecuenciaSeg - esperaEnParada;
+                return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  decoration: BoxDecoration(color: const Color(0xF0111111), borderRadius: BorderRadius.circular(24), boxShadow: Tema.sombra),
+                  child: Text(
+                    enParada
+                        ? 'Combi en la parada'
+                        : falta < 3600
+                            ? 'Próxima combi en ${(falta / 60).floor()}:${(falta % 60).floor().toString().padLeft(2, '0')} · ${hora(llegada)}'
+                            : 'Próxima combi a las ${hora(llegada)}',
+                    style: Tema.texto(size: 15, weight: FontWeight.w700, color: Tema.amarillo),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      ]),
+    );
+  }
+}
+
+class _Parada3DMapa extends StatefulWidget {
+  final Parada parada;
+  const _Parada3DMapa({required this.parada});
+
+  @override
+  State<_Parada3DMapa> createState() => _Parada3DState();
+}
+
+class _Parada3DState extends State<_Parada3DMapa> {
   ml.MapLibreMapController? _c;
   bool _listo = false;
   bool _ocupado = false;
