@@ -4,8 +4,11 @@ import 'dart:async';
 import 'package:flutter/material.dart' show Icons;
 import 'package:flutter/services.dart';
 
+import 'package:latlong2/latlong.dart';
+
 import '../datos/lugares.dart';
 import '../estado.dart';
+import '../modelo/geo.dart';
 import '../modelo/planificador.dart';
 import '../modelo/ruta.dart';
 import '../modelo/ubicacion.dart';
@@ -151,6 +154,36 @@ class _ViajePantallaState extends State<ViajePantalla> {
     });
   }
 
+  /// Nombre del lugar conocido más cercano (a menos de 350 m) para un punto tocado en el mapa.
+  String _nombreCerca(LatLng p, String otro) {
+    Lugar? mejor;
+    var dMin = 350.0;
+    for (final l in todosLosLugares()) {
+      final d = distanciaM(l.punto, p);
+      if (d < dMin) {
+        dMin = d;
+        mejor = l;
+      }
+    }
+    return mejor == null ? otro : 'Cerca de ${mejor.nombre}';
+  }
+
+  /// Primer toque: dónde estás. Segundo toque: a dónde vas. Un tercero empieza otro viaje.
+  void _tocarMapa(LatLng p) {
+    HapticFeedback.selectionClick();
+    setState(() {
+      if (_desde == null) {
+        _desde = Lugar(_nombreCerca(p, 'Tu punto'), 'Marcado en el mapa', TipoLugar.mapa, p);
+      } else if (_hasta == null) {
+        _hasta = Lugar(_nombreCerca(p, 'Destino'), 'Marcado en el mapa', TipoLugar.mapa, p);
+      } else {
+        _desde = Lugar(_nombreCerca(p, 'Tu punto'), 'Marcado en el mapa', TipoLugar.mapa, p);
+        _hasta = null;
+      }
+    });
+    _calcular();
+  }
+
   /// Revisa cada segundo si toca avisar: cuando hay que salir caminando y cuando la combi está por llegar.
   void _vigilar() {
     final ops = _opciones;
@@ -198,8 +231,9 @@ class _ViajePantallaState extends State<ViajePantalla> {
 
   @override
   Widget build(BuildContext context) {
-    final ops = _opciones;
-    if (ops != null && ops.isNotEmpty && _desde != null && _hasta != null) return _conMapa(ops);
+    // Siempre el mapa 3D: se toca primero dónde estás y luego a dónde vas.
+    return _conMapa(_opciones ?? const <Opcion>[]);
+    // ignore: dead_code
     return CupertinoPageScaffold(
       child: CustomScrollView(slivers: [
         const CupertinoSliverNavigationBar(largeTitle: Text('Viaje')),
@@ -228,18 +262,40 @@ class _ViajePantallaState extends State<ViajePantalla> {
           child: MapaViaje3D(
             opciones: ops,
             seleccion: _sel,
-            origen: _desde!,
-            destino: _hasta!,
+            origen: _desde,
+            destino: _hasta,
             onElegir: (i) => setState(() => _sel = i),
             onDetalle: _abrir,
+            onTocarVacio: _tocarMapa,
           ),
         ),
         Positioned(left: 0, right: 0, top: arriba + 4, child: _formulario()),
+        Positioned(
+          left: 0,
+          right: 0,
+          top: arriba + 146,
+          child: IgnorePointer(
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                decoration: BoxDecoration(color: const Color(0xE6111111), borderRadius: BorderRadius.circular(20)),
+                child: Text(
+                  _desde == null
+                      ? '1 · Toca el mapa donde estás'
+                      : _hasta == null
+                          ? '2 · Ahora toca a dónde vas'
+                          : 'Toca el mapa para empezar otro viaje',
+                  style: Tema.texto(size: 14, weight: FontWeight.w600, color: const Color(0xFFFFFFFF)),
+                ),
+              ),
+            ),
+          ),
+        ),
         if (_banner != null)
           Positioned(
             left: 16,
             right: 16,
-            top: arriba + 150,
+            top: arriba + 196,
             child: GestureDetector(
               onTap: () => setState(() => _banner = null),
               child: Container(
@@ -257,8 +313,27 @@ class _ViajePantallaState extends State<ViajePantalla> {
         Positioned.fill(
           child: HojaDeslizable(
             controlador: _hoja,
-            inicial: 0.4,
-            hijos: (ahora) => [
+            inicial: 0.32,
+            hijos: (ahora) => ops.isEmpty
+                ? [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 4),
+                      child: Text(
+                        _desde != null && _hasta != null ? 'Sin combis cerca de esos puntos' : '¿A dónde vas?',
+                        style: Tema.texto(size: 20, weight: FontWeight.w800),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+                      child: Text(
+                        _desde != null && _hasta != null
+                            ? 'Prueba con puntos más cerca de una ruta.'
+                            : 'Toca el mapa o escribe arriba los lugares.',
+                        style: Tema.subtitulo,
+                      ),
+                    ),
+                  ]
+                : [
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 0, 12, 4),
                 child: Row(children: [
@@ -328,11 +403,6 @@ class _ViajePantallaState extends State<ViajePantalla> {
                   ),
                 ]),
               ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 6),
-                child: Text('Las combis avanzan en vivo en el mapa; la ruta que ya recorrieron se borra. '
-                    'Toca una opción para verla y tócala otra vez para el paso a paso.', style: Tema.chico),
-              ),
               for (var i = 0; i < ops.length; i++)
                 TarjetaOpcion(
                   opcion: ops[i],
@@ -341,9 +411,9 @@ class _ViajePantallaState extends State<ViajePantalla> {
                 ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(32, 6, 32, 0),
-                child: Text('Tiempos estimados con el horario de cada ruta. Las rutas 3, 4 y 5 son simuladas.', style: Tema.chico),
+                child: Text('Tiempos estimados · rutas 3, 4 y 5 simuladas', style: Tema.chico),
               ),
-            ],
+                  ],
           ),
         ),
       ]),

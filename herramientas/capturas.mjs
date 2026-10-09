@@ -52,6 +52,16 @@ await pagina.mouse.up();
 await pagina.waitForTimeout(2500);
 await pagina.screenshot({ path: path.join(salida, "1c-hoja-abajo.png") });
 
+// Viaje marcando con clics: primero dónde estás y luego a dónde vas
+await pagina.goto("http://localhost:8099" + BASE + "?tab=viaje", { waitUntil: "load" });
+await pagina.waitForTimeout(16000);
+await pagina.screenshot({ path: path.join(salida, "2d-viaje-vacio.png") });
+await pagina.mouse.click(170, 430);
+await pagina.waitForTimeout(2500);
+await pagina.mouse.click(250, 330);
+await pagina.waitForTimeout(9000);
+await pagina.screenshot({ path: path.join(salida, "2e-viaje-clics.png") });
+
 // Viaje unos segundos después (la combi avanzó)
 await pagina.goto("http://localhost:8099" + BASE + "?tab=viaje&desde=gomez%20sada&hasta=av%20lazaro%20cardenas", { waitUntil: "load" });
 await pagina.waitForTimeout(25000);

@@ -50,8 +50,11 @@ List<List<LatLng>> pendiente(Tramo t, double ahora) {
 class MapaViaje3D extends StatefulWidget {
   final List<Opcion> opciones;
   final int seleccion;
-  final Lugar origen;
-  final Lugar destino;
+  final Lugar? origen;
+  final Lugar? destino;
+
+  /// Toque en un lugar vacío del mapa (para marcar origen y destino con el dedo).
+  final void Function(LatLng)? onTocarVacio;
   final void Function(int) onElegir;
   final void Function(Opcion) onDetalle;
 
@@ -61,6 +64,7 @@ class MapaViaje3D extends StatefulWidget {
     required this.seleccion,
     required this.origen,
     required this.destino,
+    this.onTocarVacio,
     required this.onElegir,
     required this.onDetalle,
   });
@@ -94,9 +98,10 @@ class _MapaViaje3DState extends State<MapaViaje3D> {
   @override
   void didUpdateWidget(MapaViaje3D viejo) {
     super.didUpdateWidget(viejo);
-    if (!identical(viejo.opciones, widget.opciones) || viejo.seleccion != widget.seleccion) {
+    final cambioPuntos = viejo.origen?.punto != widget.origen?.punto || viejo.destino?.punto != widget.destino?.punto;
+    if (!identical(viejo.opciones, widget.opciones) || viejo.seleccion != widget.seleccion || cambioPuntos) {
       _todo();
-      if (!identical(viejo.opciones, widget.opciones)) _encuadrar();
+      if (!identical(viejo.opciones, widget.opciones) && widget.opciones.isNotEmpty) _encuadrar();
     }
   }
 
@@ -104,13 +109,17 @@ class _MapaViaje3DState extends State<MapaViaje3D> {
       widget.opciones.isEmpty ? null : widget.opciones[widget.seleccion.clamp(0, widget.opciones.length - 1)];
 
   List<LatLng> get _puntos => [
-        widget.origen.punto,
-        widget.destino.punto,
+        if (widget.origen != null) widget.origen!.punto,
+        if (widget.destino != null) widget.destino!.punto,
         for (final o in widget.opciones)
           for (final t in o.tramos) ...t.puntos,
       ];
 
   ml.CameraPosition _camaraPara(List<LatLng> pts) {
+    if (pts.length < 2) {
+      final c = pts.isEmpty ? const LatLng(17.9600, -102.1990) : pts.first;
+      return ml.CameraPosition(target: ml.LatLng(c.latitude - 0.004, c.longitude), zoom: 14.6, tilt: 45, bearing: -20);
+    }
     var minLat = pts.first.latitude, maxLat = minLat, minLng = pts.first.longitude, maxLng = minLng;
     for (final p in pts) {
       minLat = math.min(minLat, p.latitude);
@@ -156,7 +165,9 @@ class _MapaViaje3DState extends State<MapaViaje3D> {
           ...caseta(t.baja!, resaltada: identical(o, sel)),
         ],
     ]));
-    await c.setGeoJsonSource('pines', geoPines(widget.origen.punto, widget.destino.punto));
+    await c.setGeoJsonSource('pines', widget.origen == null
+        ? coleccion([if (widget.destino != null) ...((geoPines(widget.destino!.punto, null)['features'] as List).cast<Map<String, dynamic>>())])
+        : geoPines(widget.origen!.punto, widget.destino?.punto));
     await c.setGeoJsonSource('pie', coleccion([
       for (var i = 0; i < widget.opciones.length; i++)
         for (final t in widget.opciones[i].tramos)
@@ -181,29 +192,6 @@ class _MapaViaje3DState extends State<MapaViaje3D> {
         if (i != widget.seleccion) i,
       if (widget.seleccion < widget.opciones.length) widget.seleccion,
     ];
-    // Las demás combis de esas rutas, más chicas: así se ve por dónde vienen todas
-    final mias = <String>{
-      for (final o in widget.opciones)
-        for (final t in o.enCombi) '${t.ruta!.id}|${t.ruta!.salidaDe(t.sube!, t.inicio).round()}',
-    };
-    final usadas = <String, Ruta>{
-      for (final o in widget.opciones)
-        for (final t in o.enCombi) t.ruta!.id: t.ruta!,
-    };
-    for (final r in usadas.values) {
-      for (final cb in r.combisEn(ahora)) {
-        if (mias.contains(refCombi(cb))) continue;
-        combis.addAll(combi3d(r, cb.punto, r.trazo.rumboEn(cb.metros), refCombi(cb), techo: techoSegun(cb), escala: 0.7));
-        puntos.add(punto(cb.punto, {
-          'color': hexColor(r.color),
-          'texto': '${r.numero}',
-          'letra': r.color.computeLuminance() > 0.5 ? '#111111' : '#ffffff',
-          'radio': 6.0,
-          'tipo': 'combi',
-        }));
-      }
-    }
-
     for (final i in orden) {
       final o = widget.opciones[i];
       final elegida = i == widget.seleccion;
@@ -257,8 +245,8 @@ class _MapaViaje3DState extends State<MapaViaje3D> {
         }
       }
     }
-    etiquetas.add(etiqueta(widget.destino.punto, widget.destino.nombre, const Color(0xFFD70015), prioridad: 3));
-    etiquetas.add(etiqueta(widget.origen.punto, 'Sales de aquí', Tema.azul, prioridad: 3));
+    if (widget.destino != null) etiquetas.add(etiqueta(widget.destino!.punto, widget.destino!.nombre, const Color(0xFFD70015), prioridad: 3));
+    if (widget.origen != null) etiquetas.add(etiqueta(widget.origen!.punto, 'Sales de aquí', Tema.azul, prioridad: 3));
 
     await c.setGeoJsonSource('viaje', coleccion(lineas));
     await c.setGeoJsonSource('combis', coleccion(combis));
@@ -266,7 +254,7 @@ class _MapaViaje3DState extends State<MapaViaje3D> {
     await c.setGeoJsonSource('etiquetas', coleccion(etiquetas));
   }
 
-  Future<void> _alTocar(math.Point<double> punto, ml.LatLng _) async {
+  Future<void> _alTocar(math.Point<double> punto, ml.LatLng donde) async {
     final c = _c;
     if (c == null) return;
     List<dynamic> f = const [];
@@ -275,7 +263,11 @@ class _MapaViaje3DState extends State<MapaViaje3D> {
     } catch (_) {
       return;
     }
-    if (f.isEmpty || !mounted) return;
+    if (!mounted) return;
+    if (f.isEmpty) {
+      widget.onTocarVacio?.call(LatLng(donde.latitude, donde.longitude));
+      return;
+    }
     final props = f.first is Map && (f.first as Map)['properties'] is Map ? (f.first as Map)['properties'] as Map : const {};
     if (props['tipo'] == 'parada') {
       final ref = '${props['ref']}';

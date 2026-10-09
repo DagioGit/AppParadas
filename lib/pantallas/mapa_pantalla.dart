@@ -199,19 +199,6 @@ class _MapaPantallaState extends State<MapaPantalla> {
         if (p != null) etiquetas.add(etiqueta(p, 'Combi ${r.numero} → tu parada ${faltaTexto(llegada, ahora)}', Tema.tinta, prioridad: 2));
       }
     }
-    // Combis detenidas: en parada (techo verde) o en el semáforo (techo rojo)
-    if (o == null) {
-      for (final r in _rutasVisibles) {
-        for (final cb in r.combisEn(ahora)) {
-          if (!cb.detenida) continue;
-          final pausa = r.pausaEn(cb.metros);
-          if (pausa == null) continue;
-          etiquetas.add(pausa.parada != null
-              ? etiqueta(cb.punto, 'En parada · ${pausa.parada!.nombre}', Tema.verde, prioridad: 4)
-              : etiqueta(cb.punto, 'Semáforo en rojo', const Color(0xFFD70015), prioridad: 5));
-        }
-      }
-    }
     etiquetas.add(etiqueta(_yo, 'Estás aquí', Tema.azul, prioridad: 0));
 
     await c.setGeoJsonSource('combis', geoCombis(_rutasVisibles, ahora, resaltadas: destacadas));
@@ -426,13 +413,21 @@ class _MapaPantallaState extends State<MapaPantalla> {
             _BotonTexto(texto: _tresD ? '2D' : '3D', onTap: _cambiarVista),
             const SizedBox(height: 10),
             BotonFlotante(icono: Icons.near_me_rounded, onTap: () => _ubicarme()),
+            const SizedBox(height: 10),
+            BotonFlotante(
+              icono: Icons.info_outline_rounded,
+              onTap: () => showCupertinoModalPopup<void>(
+                context: context,
+                builder: (ctx) => CupertinoActionSheet(
+                  title: Text('Qué ves en el mapa', style: Tema.texto(size: 15, weight: FontWeight.w700)),
+                  message: _leyenda(),
+                  cancelButton: CupertinoActionSheetAction(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Listo')),
+                ),
+              ),
+            ),
           ]),
         ),
-        Positioned(
-          left: 16,
-          top: arriba + 72,
-          child: IgnorePointer(child: _leyenda()),
-        ),
+
         if (_aviso != null)
           Positioned(
             left: 16,
@@ -469,12 +464,10 @@ class _MapaPantallaState extends State<MapaPantalla> {
             Text(texto, style: Tema.texto(size: 12, weight: FontWeight.w600)),
           ]),
         );
-    return Container(
-      padding: const EdgeInsets.fromLTRB(8, 6, 12, 6),
-      decoration: BoxDecoration(color: const Color(0xE6FFFFFF), borderRadius: BorderRadius.circular(12), boxShadow: Tema.sombra),
+    return Center(
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-        item(Container(width: 18, height: 10, decoration: BoxDecoration(color: const Color(0xFF3A3A3C), borderRadius: BorderRadius.circular(3), border: Border.all(color: const Color(0xFFFFFFFF), width: 1.5))), 'Combi en vivo'),
-        item(Container(width: 16, height: 12, decoration: BoxDecoration(color: Tema.amarillo, borderRadius: BorderRadius.circular(2))), 'Caseta (parada)'),
+        item(Container(width: 18, height: 10, decoration: BoxDecoration(color: const Color(0xFF3A3A3C), borderRadius: BorderRadius.circular(3))), 'Combi de la Ruta 1, en vivo'),
+        item(Container(width: 16, height: 12, decoration: BoxDecoration(color: Tema.amarillo, borderRadius: BorderRadius.circular(2))), 'Caseta LZC (parada)'),
         item(iconoSemaforo(alto: 16), 'Semáforo'),
         item(Container(width: 18, height: 6, color: const Color(0xFF34C759)), 'Techo verde: en parada'),
         item(Container(width: 18, height: 6, color: const Color(0xFFFF3B30)), 'Techo rojo: semáforo'),

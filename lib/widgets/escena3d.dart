@@ -8,6 +8,7 @@ import 'dart:ui' show Color;
 
 import 'package:latlong2/latlong.dart';
 
+import '../datos/caseta_lzc.dart';
 import '../datos/semaforos.dart';
 import '../modelo/planificador.dart';
 import '../modelo/ruta.dart';
@@ -87,23 +88,39 @@ Map<String, dynamic> geoRutas(Iterable<Ruta> rs, {bool tenues = false}) => colec
 /// Color de techo/carrocería: la Ruta 1 gris se oscurece para que resalte sobre el mapa gris.
 String colorFuerte(Ruta r) => r.id == 'R1' ? '#3a3a3c' : hexColor(r.color);
 
-/// Caseta LZC simplificada (exagerada para verse desde arriba): banqueta, respaldo de cristal,
-/// techo del color de la ruta y tótem con la pantalla amarilla del contador.
-List<Map<String, dynamic>> caseta(Parada p, {bool resaltada = false}) {
+/// La Caseta LZC de la página web (mismo modelo de SketchUp), puesta junto a la parada.
+/// [escala] 1 = tamaño real (4.9 m); en el mapa general se agranda para que se vea desde arriba.
+/// Al lado va el tótem con la pantalla del contador (verde cuando hay combi en la parada).
+List<Map<String, dynamic>> casetaModelo(Parada p, {double escala = 1, double lado = 6.5, bool resaltada = false, bool combiEnParada = false}) {
   final r = p.ruta;
   final rumbo = r.trazo.rumboEn(p.metros);
   final c = p.punto;
   final ref = {'tipo': 'parada', 'ref': p.id};
-  const lado = 18.0; // metros hacia la banqueta (a la derecha del sentido de la combi)
-  final color = colorFuerte(r);
+  final minimo = escala > 1 ? 0.35 : 0.02; // piezas muy delgadas se engruesan si se agranda
+  Map<String, dynamic> pieza(double x0, double x1, double y0, double y1, double z0, double z1, String color) {
+    final largo = math.max((x1 - x0) * escala, minimo);
+    final ancho = math.max((y1 - y0) * escala, minimo);
+    return caja(
+      rectangulo(c, largo, ancho, rumbo, adelante: (x0 + x1) / 2 * escala, derecha: lado + (y0 + y1) / 2 * escala),
+      color,
+      z0 * escala,
+      z1 * escala,
+      ref,
+    );
+  }
+
   return [
-    caja(rectangulo(c, 30, 13, rumbo, derecha: lado), '#c7c7cc', 0, 1, ref),
-    caja(rectangulo(c, 26, 1.8, rumbo, derecha: lado + 5.2), resaltada ? '#ffffff' : '#dbe7ef', 1, 10, ref),
-    caja(rectangulo(c, 30, 12, rumbo, derecha: lado + 0.8), color, 10, 12, ref),
-    caja(rectangulo(c, 2.4, 2.4, rumbo, adelante: 19, derecha: lado + 3), '#1c1c1e', 0, 17, ref),
-    caja(rectangulo(c, 5.5, 2.8, rumbo, adelante: 19, derecha: lado + 3), resaltada ? '#34c759' : '#f2c200', 11, 17.5, ref),
+    for (final q in piezasCaseta)
+      pieza(q.x0, q.x1, q.y0, q.y1, q.z0, q.z1, resaltada && q.nombre.startsWith('Tira_LED') ? '#34c759' : q.color),
+    // Tótem del contador, junto a la caseta
+    pieza(3.25, 3.55, -0.85, -0.55, 0, 2.5, '#2b3237'),
+    pieza(3.18, 3.62, -0.9, -0.82, 1.3, 2.35, combiEnParada ? '#34c759' : (resaltada ? '#34c759' : '#f2c200')),
   ];
 }
+
+/// En el mapa general: la misma caseta, más grande para que se vea desde arriba.
+List<Map<String, dynamic>> caseta(Parada p, {bool resaltada = false}) =>
+    casetaModelo(p, escala: 3.2, lado: 16, resaltada: resaltada);
 
 Map<String, dynamic> geoCasetas(Iterable<Ruta> rs, {Set<String> resaltadas = const {}}) => coleccion([
       for (final r in rs)
@@ -208,33 +225,9 @@ Map<String, dynamic> etiqueta(LatLng p, String texto, Color color, {int priorida
 
 // ---------------- Vista de parada en 3D (escala real) ----------------
 
-/// Caseta LZC a escala real (8 m × 3 m): banqueta, postes, techo, respaldo de cristal, banca,
-/// tótem con pantalla del contador y letrero de la ruta.
-List<Map<String, dynamic>> casetaReal(Parada p, {bool combiEnParada = false}) {
-  final r = p.ruta;
-  final rumbo = r.trazo.rumboEn(p.metros);
-  final c = p.punto;
-  const lado = 7.5; // de la línea de la ruta a la caseta
-  final color = colorFuerte(r);
-  final ref = {'tipo': 'parada', 'ref': p.id};
-  Map<String, dynamic> b(double largo, double ancho, String col, double base, double alto, {double adelante = 0, double derecha = 0}) =>
-      caja(rectangulo(c, largo, ancho, rumbo, adelante: adelante, derecha: lado + derecha), col, base, alto, ref);
-  return [
-    b(11, 5, '#c7c7cc', 0, 0.25), // banqueta
-    b(11, 0.35, '#f2c200', 0, 0.27, derecha: -2.4), // guarnición amarilla
-    for (final a in [-3.8, 3.8])
-      for (final d in [-1.2, 1.3]) b(0.18, 0.18, '#3a3a3c', 0.25, 2.75, adelante: a, derecha: d), // postes
-    b(8.6, 3.3, color, 2.75, 2.95), // techo
-    b(8.2, 3.0, '#ffffff', 2.95, 3.0), // panel solar (borde)
-    b(7.6, 2.6, '#1c3d5a', 2.96, 3.02), // panel solar
-    b(7.4, 0.08, '#bcd9ea', 0.45, 2.5, derecha: 1.3), // respaldo de cristal
-    b(4.8, 0.5, '#8e5a2b', 0.45, 0.55, derecha: 0.9), // banca
-    for (final a in [-2.0, 2.0]) b(0.12, 0.4, '#3a3a3c', 0.25, 0.45, adelante: a, derecha: 0.9),
-    b(0.4, 0.4, '#1c1c1e', 0.25, 2.9, adelante: 4.9, derecha: -0.6), // tótem
-    b(0.9, 0.18, combiEnParada ? '#34c759' : '#f2c200', 1.6, 2.6, adelante: 4.9, derecha: -0.6), // pantalla
-    b(0.9, 0.2, color, 2.9, 3.4, adelante: 4.9, derecha: -0.6), // letrero de la ruta
-  ];
-}
+/// Caseta LZC a escala real (el modelo de la página web).
+List<Map<String, dynamic>> casetaReal(Parada p, {bool combiEnParada = false}) =>
+    casetaModelo(p, escala: 1, lado: 5.2, combiEnParada: combiEnParada);
 
 /// Combi a escala real (5.5 m × 2.1 m), con ventanas y techo que cambia de color al detenerse.
 List<Map<String, dynamic>> combiReal(Ruta r, LatLng p, double rumbo, String ref, {String? techo, bool resaltada = false}) {

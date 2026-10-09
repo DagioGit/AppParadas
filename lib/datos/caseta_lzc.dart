@@ -1,0 +1,73 @@
+// GENERADO por herramientas/gen_caseta.py a partir de la Caseta LZC de la página web
+// (modelo de SketchUp). Medidas en metros: x a lo largo de la calle, y de la guarnición (−)
+// al respaldo (+), z hacia arriba.
+
+class PiezaCaseta {
+  final String nombre;
+  final double x0, x1, y0, y1, z0, z1;
+  final String color;
+  const PiezaCaseta(this.nombre, this.x0, this.x1, this.y0, this.y1, this.z0, this.z1, this.color);
+}
+
+const List<PiezaCaseta> piezasCaseta = [
+  PiezaCaseta('Losa', -2.400, 2.400, -1.200, 1.200, 0.000, 0.150, '#c8c4bc'),
+  PiezaCaseta('Franja_Tactil', -2.400, 2.400, -1.200, -0.800, 0.150, 0.160, '#f2c200'),
+  PiezaCaseta('Area_Silla_Ruedas', 0.650, 1.850, -0.350, 0.720, 0.150, 0.162, '#1f5caa'),
+  PiezaCaseta('Columna_1', -2.025, -1.875, 0.800, 0.950, 0.150, 2.635, '#2b3237'),
+  PiezaCaseta('Vigueta_1', -2.010, -1.890, -1.200, 1.150, 2.420, 2.796, '#2b3237'),
+  PiezaCaseta('Columna_2', 1.875, 2.025, 0.800, 0.950, 0.150, 2.635, '#2b3237'),
+  PiezaCaseta('Vigueta_2', 1.890, 2.010, -1.200, 1.150, 2.420, 2.796, '#2b3237'),
+  PiezaCaseta('Larguero_Inferior', -1.880, 1.880, 0.850, 0.920, 0.280, 0.380, '#2b3237'),
+  PiezaCaseta('Larguero_Superior', -1.880, 1.880, 0.850, 0.920, 2.300, 2.380, '#2b3237'),
+  PiezaCaseta('Parteluz', -0.025, 0.025, 0.850, 0.920, 0.380, 2.300, '#2b3237'),
+  PiezaCaseta('Bajante_Pluvial', 1.880, 1.940, 0.960, 1.020, 0.150, 2.581, '#2b3237'),
+  PiezaCaseta('Modulo_USB', -1.875, -1.845, 0.805, 0.945, 0.920, 1.100, '#f2c200'),
+  PiezaCaseta('Cubierta', -2.450, 2.450, -1.250, 1.150, 2.620, 2.900, '#2b3237'),
+  PiezaCaseta('Letrero_Frontal', -2.450, 2.450, -1.290, -1.250, 2.600, 2.940, '#f2c200'),
+  PiezaCaseta('Canalon', -2.450, 2.450, 1.150, 1.250, 2.560, 2.700, '#2b3237'),
+  PiezaCaseta('Tira_LED', -2.300, 2.300, -1.190, -1.150, 2.763, 2.796, '#fafcff'),
+  PiezaCaseta('Tira_LED_Respaldo', -1.800, 1.800, 0.700, 0.740, 2.622, 2.652, '#fafcff'),
+  PiezaCaseta('Riel_1_a', -2.100, -2.040, -0.620, 0.550, 2.765, 2.903, '#bec4c8'),
+  PiezaCaseta('Riel_1_b', -0.280, -0.220, -0.620, 0.550, 2.765, 2.903, '#bec4c8'),
+  PiezaCaseta('Panel_1', -2.300, -0.020, -0.620, 0.510, 2.818, 2.943, '#1c2f52'),
+  PiezaCaseta('Riel_2_a', 0.220, 0.280, -0.620, 0.550, 2.765, 2.903, '#bec4c8'),
+  PiezaCaseta('Riel_2_b', 2.040, 2.100, -0.620, 0.550, 2.765, 2.903, '#bec4c8'),
+  PiezaCaseta('Panel_2', 0.020, 2.300, -0.620, 0.510, 2.818, 2.943, '#1c2f52'),
+  PiezaCaseta('Cristal_Izq', -1.880, -0.025, 0.880, 0.892, 0.380, 2.300, '#cde2ea'),
+  PiezaCaseta('Cristal_Der', 0.025, 1.880, 0.880, 0.892, 0.380, 2.300, '#cde2ea'),
+  PiezaCaseta('Franja_Acento', -1.880, 1.880, 0.874, 0.898, 1.420, 1.560, '#f2c200'),
+  PiezaCaseta('Tabla_Asiento_1', -1.650, 0.450, 0.380, 0.455, 0.430, 0.465, '#9e683c'),
+  PiezaCaseta('Tabla_Asiento_2', -1.650, 0.450, 0.470, 0.545, 0.430, 0.465, '#9e683c'),
+  PiezaCaseta('Tabla_Asiento_3', -1.650, 0.450, 0.560, 0.635, 0.430, 0.465, '#9e683c'),
+  PiezaCaseta('Tabla_Asiento_4', -1.650, 0.450, 0.650, 0.725, 0.430, 0.465, '#9e683c'),
+  PiezaCaseta('Tabla_Asiento_5', -1.650, 0.450, 0.740, 0.815, 0.430, 0.465, '#9e683c'),
+  PiezaCaseta('Tabla_Respaldo_1', -1.650, 0.450, 0.800, 0.830, 0.560, 0.650, '#9e683c'),
+  PiezaCaseta('Tabla_Respaldo_2', -1.650, 0.450, 0.800, 0.830, 0.680, 0.770, '#9e683c'),
+  PiezaCaseta('Mensula_1', -1.580, -1.520, 0.360, 0.840, 0.390, 0.430, '#2b3237'),
+  PiezaCaseta('Pata_1', -1.580, -1.520, 0.780, 0.840, 0.150, 0.800, '#2b3237'),
+  PiezaCaseta('Mensula_2', -0.630, -0.570, 0.360, 0.840, 0.390, 0.430, '#2b3237'),
+  PiezaCaseta('Pata_2', -0.630, -0.570, 0.780, 0.840, 0.150, 0.800, '#2b3237'),
+  PiezaCaseta('Mensula_3', 0.320, 0.380, 0.360, 0.840, 0.390, 0.430, '#2b3237'),
+  PiezaCaseta('Pata_3', 0.320, 0.380, 0.780, 0.840, 0.150, 0.800, '#2b3237'),
+  PiezaCaseta('Descansabrazos', -0.630, -0.570, 0.400, 0.800, 0.620, 0.660, '#2b3237'),
+  PiezaCaseta('Poste_Descansabrazos', -0.630, -0.570, 0.400, 0.450, 0.465, 0.620, '#2b3237'),
+  PiezaCaseta('Poste_1', 0.770, 0.830, 0.800, 0.860, 0.150, 0.740, '#2b3237'),
+  PiezaCaseta('Poste_2', 1.670, 1.730, 0.800, 0.860, 0.150, 0.740, '#2b3237'),
+  PiezaCaseta('Cojin', 0.700, 1.800, 0.720, 0.860, 0.740, 0.800, '#9e683c'),
+  PiezaCaseta('Marco_Mapa', -2.360, -2.240, -0.280, 0.970, 0.300, 2.320, '#2b3237'),
+  PiezaCaseta('Mapa_Interior', -2.240, -2.235, -0.200, 0.890, 0.420, 2.200, '#f0f0ec'),
+  PiezaCaseta('Mapa_Exterior', -2.365, -2.360, -0.200, 0.890, 0.420, 2.200, '#f0f0ec'),
+  PiezaCaseta('Riel_Bajo', 2.250, 2.350, -0.200, 0.950, 0.150, 0.300, '#2b3237'),
+  PiezaCaseta('Riel_Alto', 2.250, 2.350, -0.200, 0.950, 2.360, 2.440, '#2b3237'),
+  PiezaCaseta('Lama_1', 2.270, 2.330, -0.150, -0.040, 0.300, 2.360, '#9e683c'),
+  PiezaCaseta('Lama_2', 2.270, 2.330, 0.020, 0.130, 0.300, 2.360, '#9e683c'),
+  PiezaCaseta('Lama_3', 2.270, 2.330, 0.190, 0.300, 0.300, 2.360, '#9e683c'),
+  PiezaCaseta('Lama_4', 2.270, 2.330, 0.360, 0.470, 0.300, 2.360, '#9e683c'),
+  PiezaCaseta('Lama_5', 2.270, 2.330, 0.530, 0.640, 0.300, 2.360, '#9e683c'),
+  PiezaCaseta('Lama_6', 2.270, 2.330, 0.700, 0.810, 0.300, 2.360, '#9e683c'),
+  PiezaCaseta('Lama_7', 2.270, 2.330, 0.870, 0.980, 0.300, 2.360, '#9e683c'),
+  PiezaCaseta('Bote_Organico', 2.500, 2.940, -0.070, 0.370, 0.000, 0.850, '#2f7d5b'),
+  PiezaCaseta('Bote_Inorganico', 2.500, 2.940, 0.400, 0.840, 0.000, 0.850, '#70787e'),
+  PiezaCaseta('Poste', -2.790, -2.710, -0.990, -0.910, 0.000, 3.050, '#2b3237'),
+  PiezaCaseta('Disco', -2.790, -2.710, -1.290, -0.610, 2.380, 3.060, '#f2c200'),
+];
