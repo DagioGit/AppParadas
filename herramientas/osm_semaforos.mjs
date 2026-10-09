@@ -18,7 +18,7 @@ let datos = null;
 for (let intento = 0; intento < 9 && !datos; intento++) {
   const url = SERVIDORES[intento % SERVIDORES.length];
   try {
-    const r = await fetch(url, { method: "POST", body: "data=" + encodeURIComponent(q), headers: { "Content-Type": "application/x-www-form-urlencoded" } });
+    const r = await fetch(url, { method: "POST", body: "data=" + encodeURIComponent(q), headers: { "Content-Type": "application/x-www-form-urlencoded", "Accept": "application/json", "User-Agent": "CombiLZC/1.0 (proyecto escolar, github.com/DagioGit/AppParadas)" } });
     if (!r.ok) throw new Error(r.status + " " + (await r.text()).slice(0, 200));
     datos = await r.json();
   } catch (e) {
