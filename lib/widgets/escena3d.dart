@@ -98,7 +98,7 @@ String colorFuerte(Ruta r) => r.id == 'R1' ? '#3a3a3c' : hexColor(r.color);
 /// La Caseta LZC de la página web (mismo modelo de SketchUp), puesta junto a la parada.
 /// [escala] 1 = tamaño real (4.9 m); en el mapa general se agranda para que se vea desde arriba.
 /// La pantalla del contador cuelga del techo (verde cuando hay combi en la parada);
-/// tiene banca adentro y afuera y botes de basura separada.
+/// tiene banca adentro y afuera, botes de basura separada y rampa para silla de ruedas.
 List<Map<String, dynamic>> casetaModelo(Parada p, {double escala = 1, double lado = 6.5, bool resaltada = false, bool combiEnParada = false}) {
   final r = p.ruta;
   final rumbo = r.trazo.rumboEn(p.metros);
@@ -128,8 +128,12 @@ List<Map<String, dynamic>> casetaModelo(Parada p, {double escala = 1, double lad
     // Tapas de los botes de basura separada y un tercero para reciclables
     pieza(2.48, 2.96, -0.09, 0.39, 0.85, 0.92, '#1f5f43'),
     pieza(2.48, 2.96, 0.38, 0.86, 0.85, 0.92, '#4a5157'),
-    pieza(2.5, 2.94, -0.56, -0.12, 0.0, 0.85, '#1f5caa'),
-    pieza(2.48, 2.96, -0.58, -0.1, 0.85, 0.92, '#163f78'),
+    pieza(2.5, 2.94, 0.87, 1.31, 0.0, 0.85, '#1f5caa'),
+    pieza(2.48, 2.96, 0.85, 1.33, 0.85, 0.92, '#163f78'),
+    // Rampa azul para silla de ruedas (baja del piso de la caseta a la banqueta)
+    pieza(2.4, 3.0, -1.21, -0.27, 0.0, 0.12, '#2d63c8'),
+    pieza(3.0, 3.7, -1.21, -0.27, 0.0, 0.07, '#2d63c8'),
+    pieza(3.7, 4.4, -1.21, -0.27, 0.0, 0.03, '#2d63c8'),
     // Banca exterior de madera con patas de concreto, junto a la caseta
     pieza(-4.75, -4.6, 0.2, 0.7, 0.0, 0.42, '#a8a29a'),
     pieza(-3.4, -3.25, 0.2, 0.7, 0.0, 0.42, '#a8a29a'),
