@@ -21,7 +21,7 @@ jobs:
         with:
           node-version: "20"
       - name: Descargar y convertir
-        run: node herramientas/osm_semaforos.mjs
+        run: bash herramientas/con_resumen.sh node herramientas/osm_semaforos.mjs
       - name: Guardar
         run: |
           git config user.name "github-actions[bot]"

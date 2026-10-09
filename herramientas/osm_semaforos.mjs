@@ -15,7 +15,7 @@ way(bn.s)["highway"]["name"];
 out body;`;
 
 let datos = null;
-for (let intento = 0; intento < 6 && !datos; intento++) {
+for (let intento = 0; intento < 9 && !datos; intento++) {
   const url = SERVIDORES[intento % SERVIDORES.length];
   try {
     const r = await fetch(url, { method: "POST", body: "data=" + encodeURIComponent(q), headers: { "Content-Type": "application/x-www-form-urlencoded" } });
@@ -23,7 +23,7 @@ for (let intento = 0; intento < 6 && !datos; intento++) {
     datos = await r.json();
   } catch (e) {
     console.log("Overpass falló", url, e.message);
-    await espera(8000);
+    await espera(15000);
   }
 }
 if (!datos) throw new Error("No se pudo descargar de Overpass");
