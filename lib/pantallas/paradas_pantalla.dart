@@ -133,7 +133,7 @@ class _FilaLlegada extends StatelessWidget {
     final r = parada.ruta;
     final llegada = r.proximaLlegada(parada, ahora);
     final falta = llegada - ahora;
-    final llegando = falta < 45;
+    final llegando = r.combiEnParada(parada, ahora);
     final claro = r.color.computeLuminance() > 0.5;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -166,7 +166,7 @@ class _FilaLlegada extends StatelessWidget {
             ),
             child: Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
               Text(
-                llegando ? 'Ya está' : falta < 3600 ? '${(falta / 60).ceil()} min' : hora(llegada),
+                llegando ? 'Ya está' : falta < 60 ? '${falta.round()} s' : falta < 3600 ? '${(falta / 60).ceil()} min' : hora(llegada),
                 style: Tema.texto(size: 24, weight: FontWeight.w800, color: llegando ? Tema.verde : Tema.tinta),
               ),
               Text(hora(llegada), style: Tema.chico),

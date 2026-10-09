@@ -20,15 +20,7 @@ import 'mapa_viaje.dart' show faltaTexto;
 
 /// Dónde va (en metros sobre su ruta) la combi del tramo [t] en el segundo [ahora].
 /// Devuelve null si ya terminó su vuelta.
-double? metrosCombi(Tramo t, double ahora) {
-  final r = t.ruta!;
-  final salida = r.salidaDe(t.sube!, t.inicio);
-  var e = ahora - salida;
-  if (e <= 0) return 0;
-  if (e > r.duracion) e -= r.duracion; // ya dio la vuelta (viajes que cruzan el inicio)
-  if (e > r.duracion) return null;
-  return r.metrosA(e);
-}
+double? metrosCombi(Tramo t, double ahora) => t.ruta!.metrosCombi(t.sube!, t.inicio, ahora);
 
 /// Lo que a la combi le falta por recorrer: [acercándose a tu parada, tu viaje hasta bajarte].
 List<List<LatLng>> pendiente(Tramo t, double ahora) {

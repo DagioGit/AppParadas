@@ -1,4 +1,4 @@
-"""Logo de AppParadas (combi de frente sobre gris de la Ruta 1) y todos los íconos de la app.
+"""Logo de CombiLZC (combi de frente sobre gris de la Ruta 1) y todos los íconos de la app.
 
 Uso: python3 herramientas/gen_logo.py
 """

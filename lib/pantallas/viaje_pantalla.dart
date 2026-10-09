@@ -161,20 +161,33 @@ class _ViajePantallaState extends State<ViajePantalla> {
     return mejor == null ? otro : 'Cerca de ${mejor.nombre}';
   }
 
-  /// Primer toque: dónde estás. Segundo toque: a dónde vas. Un tercero empieza otro viaje.
+  /// Primer toque: dónde estás. Segundo toque: a dónde vas. Para empezar otro viaje, el botón X.
   void _tocarMapa(LatLng p) {
+    if (_desde != null && _hasta != null) return;
     if (ajustes.vibrar) HapticFeedback.selectionClick();
     setState(() {
       if (_desde == null) {
         _desde = Lugar(_nombreCerca(p, 'Tu punto'), 'Marcado en el mapa', TipoLugar.mapa, p);
       } else if (_hasta == null) {
         _hasta = Lugar(_nombreCerca(p, 'Destino'), 'Marcado en el mapa', TipoLugar.mapa, p);
-      } else {
-        _desde = Lugar(_nombreCerca(p, 'Tu punto'), 'Marcado en el mapa', TipoLugar.mapa, p);
-        _hasta = null;
       }
+      // Con los dos puntos marcados, tocar el mapa ya no cambia nada: para empezar otro viaje está la X.
     });
     _calcular();
+  }
+
+  /// Botón X: borra lo marcado (de dónde y a dónde) para empezar de nuevo.
+  void _borrarSeleccion() {
+    if (ajustes.vibrar) HapticFeedback.lightImpact();
+    setState(() {
+      _desde = null;
+      _hasta = null;
+      _opciones = null;
+      _alerta = false;
+      _banner = null;
+      _avisados.clear();
+      _sel = 0;
+    });
   }
 
   /// Revisa cada segundo si toca avisar: cuando hay que salir caminando y cuando la combi está por llegar.
@@ -204,7 +217,7 @@ class _ViajePantallaState extends State<ViajePantalla> {
 
   /// Copia el viaje en texto para mandarlo por WhatsApp o mensaje.
   Future<void> _copiar(Opcion o) async {
-    final b = StringBuffer('AppParadas · ${_desde!.nombre} → ${_hasta!.nombre}\n');
+    final b = StringBuffer('CombiLZC · ${_desde!.nombre} → ${_hasta!.nombre}\n');
     b.writeln('Sales ${hora(o.salida)} y llegas ${hora(o.llegada)} (${duracion(o.total)}).');
     for (final t in o.tramos) {
       if (t.tipo == TipoTramo.pie) {
@@ -244,47 +257,70 @@ class _ViajePantallaState extends State<ViajePantalla> {
             onTocarVacio: _tocarMapa,
           ),
         ),
-        Positioned(left: 0, right: 0, top: arriba + 4, child: _formulario()),
         Positioned(
           left: 0,
           right: 0,
-          top: arriba + 146,
-          child: IgnorePointer(
-            child: Center(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                decoration: BoxDecoration(color: const Color(0xE6111111), borderRadius: BorderRadius.circular(20)),
-                child: Text(
-                  _desde == null
-                      ? '1 · Toca donde estás'
-                      : _hasta == null
-                          ? '2 · Toca a dónde vas'
-                          : 'Toca para otro viaje',
-                  style: Tema.texto(size: 17, weight: FontWeight.w700, color: const Color(0xFFFFFFFF)),
-                ),
-              ),
-            ),
-          ),
-        ),
-        if (_banner != null)
-          Positioned(
-            left: 16,
-            right: 16,
-            top: arriba + 196,
-            child: GestureDetector(
-              onTap: () => setState(() => _banner = null),
-              child: Container(
-                padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-                decoration: BoxDecoration(color: const Color(0xF0111111), borderRadius: BorderRadius.circular(16), boxShadow: Tema.sombra),
-                child: Row(children: [
-                  const Icon(Icons.notifications_active_rounded, color: Tema.amarillo),
-                  const SizedBox(width: 10),
-                  Expanded(child: Text(_banner!, style: Tema.texto(size: 18, weight: FontWeight.w700, color: const Color(0xFFFFFFFF)))),
-                  Icon(Icons.close_rounded, color: Tema.grisClaro, size: 18),
+          top: arriba + 4,
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            _formulario(),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+              child: SizedBox(
+                height: Tema.b(54),
+                child: Stack(alignment: Alignment.center, children: [
+                  // Indicación sólo mientras faltan puntos por marcar
+                  if (_desde == null || _hasta == null)
+                    IgnorePointer(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        decoration: BoxDecoration(color: const Color(0xE6111111), borderRadius: BorderRadius.circular(20)),
+                        child: Text(
+                          _desde == null ? '1 · Toca donde estás' : '2 · Toca a dónde vas',
+                          style: Tema.texto(size: 17, weight: FontWeight.w700, color: const Color(0xFFFFFFFF)),
+                        ),
+                      ),
+                    ),
+                  // Botón redondo con X: deshace lo marcado
+                  if (_desde != null || _hasta != null)
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: GestureDetector(
+                        onTap: _borrarSeleccion,
+                        child: Container(
+                          width: Tema.b(50),
+                          height: Tema.b(50),
+                          decoration: BoxDecoration(
+                            color: const Color(0xF0111111),
+                            shape: BoxShape.circle,
+                            border: Border.all(color: const Color(0x33FFFFFF), width: 1),
+                            boxShadow: Tema.sombra,
+                          ),
+                          child: Icon(Icons.close_rounded, color: const Color(0xFFFFFFFF), size: Tema.b(28)),
+                        ),
+                      ),
+                    ),
                 ]),
               ),
             ),
-          ),
+            if (_banner != null)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 6, 16, 0),
+                child: GestureDetector(
+                  onTap: () => setState(() => _banner = null),
+                  child: Container(
+                    padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+                    decoration: BoxDecoration(color: const Color(0xF0111111), borderRadius: BorderRadius.circular(16), boxShadow: Tema.sombra),
+                    child: Row(children: [
+                      const Icon(Icons.notifications_active_rounded, color: Tema.amarillo),
+                      const SizedBox(width: 10),
+                      Expanded(child: Text(_banner!, style: Tema.texto(size: 18, weight: FontWeight.w700, color: const Color(0xFFFFFFFF)))),
+                      const Icon(Icons.close_rounded, color: Color(0xFFAEAEB2), size: 18),
+                    ]),
+                  ),
+                ),
+              ),
+          ]),
+        ),
         Positioned.fill(
           child: HojaDeslizable(
             controlador: _hoja,
@@ -302,7 +338,7 @@ class _ViajePantallaState extends State<ViajePantalla> {
                       padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
                       child: Text(
                         _desde != null && _hasta != null
-                            ? 'Toca otro lugar del mapa.'
+                            ? 'Toca la X y marca otro lugar.'
                             : 'Toca el mapa.',
                         style: Tema.texto(size: 19, color: Tema.gris),
                       ),

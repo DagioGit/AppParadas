@@ -153,8 +153,7 @@ List<Map<String, dynamic>> combi3d(Ruta r, LatLng p, double rumbo, String ref, {
 /// Color del techo según lo que hace la combi: verde = en parada (sube y baja gente),
 /// rojo = en el semáforo, blanco = avanzando.
 String? techoSegun(CombiEnRuta c) {
-  if (!c.detenida) return null;
-  final p = c.ruta.pausaEn(c.metros);
+  final p = c.pausa;
   if (p == null) return null;
   return p.parada != null ? '#34c759' : '#ff3b30';
 }

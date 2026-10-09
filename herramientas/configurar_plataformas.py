@@ -7,8 +7,8 @@ import pathlib
 import re
 
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
-NOMBRE = "AppParadas"
-MOTIVO = "AppParadas usa tu ubicación para buscar las combis y paradas más cercanas."
+NOMBRE = "CombiLZC"
+MOTIVO = "CombiLZC usa tu ubicación para buscar las combis y paradas más cercanas."
 
 # ---------- Android ----------
 manifiesto = RAIZ / "android/app/src/main/AndroidManifest.xml"

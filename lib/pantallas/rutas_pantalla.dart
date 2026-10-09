@@ -27,7 +27,7 @@ class RutasPantalla extends StatelessWidget {
                 const SizedBox(width: 14),
                 Expanded(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text('AppParadas', style: Tema.texto(size: 24, weight: FontWeight.w800)),
+                    Text('CombiLZC', style: Tema.texto(size: 24, weight: FontWeight.w800)),
                     Text('Combis de Lázaro Cárdenas', style: Tema.subtitulo),
                   ]),
                 ),

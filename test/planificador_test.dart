@@ -79,4 +79,36 @@ void main() {
     expect(r.combisEn(14 * 3600).length, greaterThan(0));
     expect(r.combisEn(3 * 3600), isEmpty);
   });
+
+  test('En hora pico la vuelta tarda más y las combis pasan más seguido', () {
+    final r = rutaPorId('R1');
+    final pico = r.vuelta(r.salidas.indexWhere((s) => s >= 7.4 * 3600));
+    final calma = r.vuelta(r.salidas.indexWhere((s) => s >= 11 * 3600));
+    expect(pico.duracion, greaterThan(calma.duracion));
+    expect(r.frecuenciaA(7.6 * 3600), lessThan(r.frecuenciaA(11 * 3600)));
+  });
+
+  test('La combi frena en cada parada, espera y vuelve a arrancar', () {
+    final r = rutaPorId('R1');
+    final v = r.vuelta(20);
+    final p = r.paradas[2];
+    final e = v.llegadas[p.indice] + 2;
+    expect(identical(v.pausaA(e)?.parada, p), isTrue);
+    expect(v.metrosA(e), closeTo(p.metros, 0.5));
+    expect(v.kmhA(v.llegadas[p.indice] - 1), lessThan(15)); // va frenando
+    var antes = -1.0;
+    for (var t = 0.0; t <= v.duracion; t += 3) {
+      final m = v.metrosA(t);
+      expect(m, greaterThanOrEqualTo(antes - 0.001));
+      antes = m;
+    }
+  });
+
+  test('La llegada que se muestra corresponde a una combi real del horario', () {
+    final r = rutaPorId('R1');
+    final p = r.paradas[4];
+    final llega = r.proximaLlegada(p, 15 * 3600);
+    final pas = r.pasadaDe(p, llega);
+    expect(pas.salida + pas.vuelta.llegadas[p.indice], closeTo(llega, 0.01));
+  });
 }

@@ -198,7 +198,8 @@ class _HojaParadaState extends State<HojaParada> {
 
   String _cuenta(double llegada, double ahora) {
     final s = llegada - ahora;
-    if (s < 45) return 'Llegando';
+    if (s < 15) return 'Llegando';
+    if (s < 60) return 'en ${s.round()} s';
     if (s < 3600) return 'en ${(s / 60).ceil()} min';
     return 'a las ${hora(llegada)}';
   }

@@ -370,7 +370,7 @@ Future<void> mostrarSemaforo(BuildContext context, Semaforo s) {
     context: context,
     builder: (ctx) => CupertinoActionSheet(
       title: Text(s.nombre, style: Tema.texto(size: 15, weight: FontWeight.w700)),
-      message: Text('${s.detalle}.\nEn el horario simulado la combi se detiene en promedio ${esperaSemaforo.round()} s aquí.', style: Tema.texto(size: 13, color: Tema.gris)),
+      message: Text('${s.detalle}.\nCambia cada ${cicloSemaforo.round()} s. Si a la combi le toca rojo, espera el verde (hasta ${rojoSemaforo.round()} s).', style: Tema.texto(size: 14, color: Tema.gris)),
       cancelButton: CupertinoActionSheetAction(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cerrar')),
     ),
   );
@@ -381,15 +381,20 @@ Future<void> mostrarCombi(BuildContext context, CombiEnRuta c) {
   final r = c.ruta;
   final sig = c.siguiente;
   final ahora = segundosAhora();
-  final llega = sig == null ? null : sig.desfase - (ahora - c.salida);
+  final llega = c.faltaSiguiente(ahora);
+  final estado = c.pausa?.semaforo != null
+      ? 'Esperando el verde en el semáforo.'
+      : c.pausa?.parada != null
+          ? 'En la parada ${c.pausa!.parada!.nombre}: sube y baja gente.'
+          : 'Va a ${c.kmh.round()} km/h.';
   return showCupertinoModalPopup<void>(
     context: context,
     builder: (ctx) => CupertinoActionSheet(
       title: Text('${r.nombre} · ${r.apodo}', style: Tema.texto(size: 15, weight: FontWeight.w700)),
       message: Text(
-        'Salió a las ${hora(c.salida)}.'
-        '${sig != null && llega != null ? '\nSiguiente parada: ${sig.nombre} (${llega < 45 ? 'llegando' : 'en ${(llega / 60).ceil()} min'}).' : ''}',
-        style: Tema.texto(size: 13, color: Tema.gris),
+        '$estado\nSalió a las ${hora(c.salida)}.'
+        '${sig != null && llega != null ? '\nSiguiente parada: ${sig.nombre} (${llega < 20 ? 'llegando' : llega < 60 ? 'en ${llega.round()} s' : 'en ${(llega / 60).ceil()} min'}).' : ''}',
+        style: Tema.texto(size: 14, color: Tema.gris),
       ),
       cancelButton: CupertinoActionSheetAction(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cerrar')),
     ),

@@ -1,4 +1,4 @@
-name: Compilar AppParadas
+name: Compilar CombiLZC
 
 # Cada cambio en main: revisa el código, corre las pruebas, publica la versión web
 # en GitHub Pages y arma el APK de Android.
@@ -115,7 +115,7 @@ jobs:
       - name: Subir el APK
         uses: actions/upload-artifact@v4
         with:
-          name: AppParadas-apk
+          name: CombiLZC-apk
           path: build/app/outputs/flutter-apk/app-release.apk
 
       - name: Publicar el APK como descarga ("ultima")
@@ -123,8 +123,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          cp build/app/outputs/flutter-apk/app-release.apk AppParadas.apk
+          cp build/app/outputs/flutter-apk/app-release.apk CombiLZC.apk
           gh release delete ultima --yes --cleanup-tag || true
-          gh release create ultima AppParadas.apk \
-            --title "AppParadas (última versión)" \
+          gh release create ultima CombiLZC.apk \
+            --title "CombiLZC (última versión)" \
             --notes "APK de Android generado automáticamente desde ${GITHUB_SHA::7}. Instálalo en el teléfono permitiendo apps de origen desconocido."

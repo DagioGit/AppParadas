@@ -1,5 +1,5 @@
 name: app_paradas
-description: "AppParadas: rutas de combi de Lázaro Cárdenas, Michoacán, y buscador de la ruta más rápida."
+description: "CombiLZC: rutas de combi de Lázaro Cárdenas, Michoacán, y buscador de la ruta más rápida."
 publish_to: "none"
 version: 1.0.0+1
 

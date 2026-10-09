@@ -13,7 +13,8 @@ import 'comunes.dart';
 /// "llegando", "en 7 min" o "a las 15:40".
 String faltaTexto(double llegada, double ahora) {
   final s = llegada - ahora;
-  if (s < 45) return 'llegando';
+  if (s < 15) return 'llegando';
+  if (s < 60) return 'en ${s.round()} s';
   if (s < 3600) return 'en ${(s / 60).ceil()} min';
   return 'a las ${hora(llegada)}';
 }

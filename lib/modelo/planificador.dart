@@ -114,7 +114,7 @@ class Planificador {
     return Tramo(
       tipo: TipoTramo.combi,
       inicio: llega,
-      fin: llega + r.viaje(sube, baja),
+      fin: llega + r.viajeEn(sube, llega, baja),
       desde: sube.punto,
       hasta: baja.punto,
       desdeNombre: sube.nombre,

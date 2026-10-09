@@ -26,17 +26,17 @@ Future<void> main() async {
   final letra = double.tryParse(q['letra'] ?? '');
   if (letra != null) ajustes.letra = letra;
   if (q['botones'] == 'grandes') ajustes.botonesGrandes = true;
-  runApp(const AppParadas());
+  runApp(const CombiLZC());
 }
 
-class AppParadas extends StatefulWidget {
-  const AppParadas({super.key});
+class CombiLZC extends StatefulWidget {
+  const CombiLZC({super.key});
 
   @override
-  State<AppParadas> createState() => _AppParadasState();
+  State<CombiLZC> createState() => _CombiLZCState();
 }
 
-class _AppParadasState extends State<AppParadas> with WidgetsBindingObserver {
+class _CombiLZCState extends State<CombiLZC> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
@@ -77,7 +77,7 @@ class _AppParadasState extends State<AppParadas> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     return CupertinoApp(
-      title: 'AppParadas',
+      title: 'CombiLZC',
       debugShowCheckedModeBanner: false,
       scrollBehavior: const _ArrastreConMouse(),
       theme: Tema.cupertino,

@@ -431,7 +431,7 @@ class _Pie extends StatelessWidget {
             ),
         ]),
         const SizedBox(height: 10),
-        Text('AppParadas 1.0', style: Tema.texto(size: 15, weight: FontWeight.w700, color: Tema.gris)),
+        Text('CombiLZC 1.0', style: Tema.texto(size: 15, weight: FontWeight.w700, color: Tema.gris)),
         Text('Proyecto del Tec de Lázaro Cárdenas', textAlign: TextAlign.center, style: Tema.chico),
         Text('Mapa © OpenStreetMap', style: Tema.chico),
       ]),

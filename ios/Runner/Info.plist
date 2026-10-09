@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>AppParadas</string>
+	<string>CombiLZC</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -67,6 +67,6 @@
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>AppParadas usa tu ubicación para buscar las combis y paradas más cercanas.</string>
+	<string>CombiLZC usa tu ubicación para buscar las combis y paradas más cercanas.</string>
 </dict>
 </plist>

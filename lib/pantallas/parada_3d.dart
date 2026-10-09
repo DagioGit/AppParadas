@@ -103,7 +103,7 @@ class _ParadaVisorWeb extends StatelessWidget {
               builder: (context, ahora) {
                 final llegada = r.proximaLlegada(p, ahora);
                 final falta = llegada - ahora;
-                final enParada = falta > r.frecuenciaSeg - esperaEnParada;
+                final enParada = r.combiEnParada(p, ahora);
                 return Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   decoration: BoxDecoration(color: const Color(0xF0111111), borderRadius: BorderRadius.circular(24), boxShadow: Tema.sombra),
@@ -164,10 +164,10 @@ class _Parada3DState extends State<_Parada3DMapa> {
   /// La combi que viene a esta parada (la próxima) y dónde va.
   (double llegada, LatLng? donde, double metrosFaltan) _proxima(double ahora) {
     final llegada = r.proximaLlegada(p, ahora);
-    final salida = r.salidaDe(p, llegada);
-    final e = ahora - salida;
+    final pas = r.pasadaDe(p, llegada);
+    final e = ahora - pas.salida;
     if (e < 0) return (llegada, null, p.metros);
-    final m = r.metrosA(e);
+    final m = pas.vuelta.metrosA(e);
     return (llegada, r.trazo.puntoEn(m), math.max(0.0, p.metros - m));
   }
 
