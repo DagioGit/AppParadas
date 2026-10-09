@@ -84,57 +84,42 @@ class _HojaParadaState extends State<HojaParada> {
               const SizedBox(width: 12),
               Expanded(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(p.nombre, style: Tema.texto(size: 21, weight: FontWeight.w700)),
+                  Text(p.nombre, style: Tema.texto(size: 24, weight: FontWeight.w800)),
                   const SizedBox(height: 2),
                   Text('${r.nombre} · ${r.apodo}', style: Tema.subtitulo),
-                  if (p.sentido.isNotEmpty) Text(p.sentido, style: Tema.chico),
                 ]),
               ),
               CupertinoButton(
                 padding: EdgeInsets.zero,
                 minimumSize: const Size(32, 32),
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Icon(Icons.close_rounded, color: Tema.gris),
+                child: const Icon(Icons.close_rounded, color: Tema.gris, size: 30),
               ),
             ]),
           ),
-          if (p.descripcion.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 6, 20, 0),
-              child: Text(p.descripcion, style: Tema.texto(size: 15, color: Tema.tinta, height: 1.3)),
-            ),
-          const Encabezado('Próximas combis'),
+          const Encabezado('Próxima combi'),
           Tarjeta(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             child: Column(children: [
               for (var i = 0; i < llegadas.length; i++)
                 Container(
-                  padding: const EdgeInsets.symmetric(vertical: 11),
+                  padding: const EdgeInsets.symmetric(vertical: 13),
                   decoration: BoxDecoration(
                     border: i == 0 ? null : const Border(top: BorderSide(color: Tema.linea, width: 0.5)),
                   ),
                   child: Row(children: [
-                    Icon(Icons.directions_bus_rounded, color: r.color, size: 22),
+                    Icon(Icons.directions_bus_rounded, color: r.color, size: 28),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
                         _cuenta(llegadas[i], ahora),
-                        style: Tema.texto(size: i == 0 ? 20 : 17, weight: i == 0 ? FontWeight.w700 : FontWeight.w500),
+                        style: Tema.texto(size: i == 0 ? 26 : 18, weight: i == 0 ? FontWeight.w800 : FontWeight.w500),
                       ),
                     ),
                     Text(hora(llegadas[i]), style: Tema.subtitulo),
                   ]),
                 ),
             ]),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(32, 4, 32, 0),
-            child: Text(
-              r.simulada
-                  ? 'Ruta simulada para probar el buscador. Horario estimado: una combi cada ${r.frecuenciaMin} min, de 6:00 a 22:00.'
-                  : 'Horario estimado: una combi cada ${r.frecuenciaMin} min, de 6:00 a 22:00.',
-              style: Tema.chico,
-            ),
           ),
           if (cerca.isNotEmpty) ...[
             const Encabezado('También pasan cerca'),
@@ -160,7 +145,7 @@ class _HojaParadaState extends State<HojaParada> {
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
             child: CupertinoButton(
               color: Tema.amarillo,
-              padding: const EdgeInsets.symmetric(vertical: 13),
+              padding: const EdgeInsets.symmetric(vertical: 18),
               borderRadius: BorderRadius.circular(14),
               onPressed: () {
                 final nav = Navigator.of(context);
@@ -168,9 +153,9 @@ class _HojaParadaState extends State<HojaParada> {
                 nav.push(CupertinoPageRoute<void>(builder: (_) => Parada3D(parada: p)));
               },
               child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                const Icon(Icons.view_in_ar_rounded, color: Tema.tinta),
+                const Icon(Icons.view_in_ar_rounded, color: Tema.tinta, size: 28),
                 const SizedBox(width: 8),
-                Text('Ver parada en 3D', style: Tema.texto(weight: FontWeight.w700)),
+                Text('Ver en 3D', style: Tema.texto(size: 20, weight: FontWeight.w800)),
               ]),
             ),
           ),
@@ -180,27 +165,27 @@ class _HojaParadaState extends State<HojaParada> {
               Expanded(
                 child: CupertinoButton(
                   color: Tema.tarjeta,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
                   borderRadius: BorderRadius.circular(14),
                   onPressed: () {
                     final nav = Navigator.of(context);
                     nav.pop();
                     nav.push(CupertinoPageRoute<void>(builder: (_) => RutaDetalle(ruta: r)));
                   },
-                  child: Text('Ver ruta', style: Tema.texto(weight: FontWeight.w600, color: Tema.azul)),
+                  child: Text('Ver ruta', style: Tema.texto(size: 19, weight: FontWeight.w700, color: Tema.azul)),
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: CupertinoButton(
                   color: Tema.tinta,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
                   borderRadius: BorderRadius.circular(14),
                   onPressed: () {
                     Navigator.of(context).pop();
                     irAViaje(destino: Lugar(p.nombre, 'Parada de la ${r.nombre}', TipoLugar.parada, p.punto));
                   },
-                  child: Text('Ir aquí', style: Tema.texto(weight: FontWeight.w600, color: const Color(0xFFFFFFFF))),
+                  child: Text('Ir aquí', style: Tema.texto(size: 19, weight: FontWeight.w700, color: const Color(0xFFFFFFFF))),
                 ),
               ),
             ]),

@@ -18,7 +18,7 @@ class ParadasPantalla extends StatefulWidget {
 }
 
 class _ParadasPantallaState extends State<ParadasPantalla> {
-  Ruta _ruta = rutaPorId('R1');
+  final Ruta _ruta = rutaPorId('R1');
   int _sentido = 0;
 
   List<String> get _sentidos {
@@ -49,32 +49,12 @@ class _ParadasPantallaState extends State<ParadasPantalla> {
         SliverList(
           delegate: SliverChildListDelegate([
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-              child: Text(
-                r.id == 'R1' ? 'Av. Lázaro Cárdenas · Ruta 1, de la Glorieta Las Palmas al malecón' : '${r.nombre} · ${r.apodo}',
-                style: Tema.subtitulo,
-              ),
-            ),
-            SizedBox(
-              height: 42,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                children: [
-                  for (final otra in rutas)
-                    Padding(
-                      padding: const EdgeInsets.only(right: 8, bottom: 6),
-                      child: PildoraRuta(
-                        otra,
-                        activa: identical(otra, r),
-                        onTap: () => setState(() {
-                          _ruta = otra;
-                          _sentido = 0;
-                        }),
-                      ),
-                    ),
-                ],
-              ),
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
+              child: Row(children: [
+                InsigniaRuta(r, tam: 34),
+                const SizedBox(width: 10),
+                Text('Ruta 1 · Malecón', style: Tema.texto(size: 20, weight: FontWeight.w700)),
+              ]),
             ),
             _mapa(r),
             if (sentidos.isNotEmpty)
@@ -86,13 +66,13 @@ class _ParadasPantallaState extends State<ParadasPantalla> {
                   children: {
                     for (var i = 0; i < sentidos.length; i++)
                       i: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 7),
-                        child: Text(sentidos[i], style: Tema.texto(size: 14, weight: FontWeight.w600)),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        child: Text(sentidos[i], style: Tema.texto(size: 17, weight: FontWeight.w700)),
                       ),
                   },
                 ),
               ),
-            Encabezado('${paradas.length} paradas · próxima combi'),
+            const SizedBox(height: 10),
             ConReloj(
               cada: const Duration(seconds: 1),
               builder: (context, ahora) => Tarjeta(
@@ -101,43 +81,6 @@ class _ParadasPantallaState extends State<ParadasPantalla> {
                   for (var i = 0; i < paradas.length; i++)
                     _FilaLlegada(parada: paradas[i], numero: i + 1, ahora: ahora, primera: i == 0),
                 ]),
-              ),
-            ),
-            if (r.semaforosEnRuta.isNotEmpty) ...[
-              const Encabezado('Semáforos en el recorrido'),
-              Tarjeta(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-                child: Column(children: [
-                  for (var i = 0; i < r.semaforosEnRuta.length; i++)
-                    GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () => mostrarSemaforo(context, r.semaforosEnRuta[i]),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 11),
-                        decoration: BoxDecoration(
-                          border: i == 0 ? null : const Border(top: BorderSide(color: Tema.linea, width: 0.5)),
-                        ),
-                        child: Row(children: [
-                          SizedBox(width: 34, child: Center(child: iconoSemaforo(alto: 26))),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                              Text(r.semaforosEnRuta[i].nombre, style: Tema.texto(size: 16, weight: FontWeight.w600)),
-                              Text(r.semaforosEnRuta[i].detalle, style: Tema.chico),
-                            ]),
-                          ),
-                        ]),
-                      ),
-                    ),
-                ]),
-              ),
-            ],
-            Padding(
-              padding: const EdgeInsets.fromLTRB(32, 8, 32, 0),
-              child: Text(
-                'Horario estimado: una combi cada ${r.frecuenciaMin} min de 6:00 a 22:00; '
-                'cuenta ${esperaEnParada.round()} s en cada parada y el tiempo en los semáforos.',
-                style: Tema.chico,
               ),
             ),
             SizedBox(height: MediaQuery.of(context).padding.bottom + 24),
@@ -196,24 +139,22 @@ class _FilaLlegada extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       onTap: () => mostrarParada(context, parada),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
+        padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
           border: primera ? null : const Border(top: BorderSide(color: Tema.linea, width: 0.5)),
         ),
         child: Row(children: [
           Container(
-            width: 30,
-            height: 30,
+            width: 40,
+            height: 40,
             alignment: Alignment.center,
             decoration: BoxDecoration(color: r.color, shape: BoxShape.circle),
-            child: Text('$numero', style: Tema.texto(size: 14, weight: FontWeight.w800, color: claro ? Tema.tinta : const Color(0xFFFFFFFF))),
+            child: Text('$numero', style: Tema.texto(size: 18, weight: FontWeight.w800, color: claro ? Tema.tinta : const Color(0xFFFFFFFF))),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(parada.nombre, style: Tema.texto(size: 16, weight: FontWeight.w600)),
-              if (parada.descripcion.isNotEmpty)
-                Text(parada.descripcion, maxLines: 1, overflow: TextOverflow.ellipsis, style: Tema.chico),
+              Text(parada.nombre, style: Tema.texto(size: 19, weight: FontWeight.w700)),
             ]),
           ),
           const SizedBox(width: 8),
@@ -225,8 +166,8 @@ class _FilaLlegada extends StatelessWidget {
             ),
             child: Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
               Text(
-                llegando ? 'En parada' : falta < 3600 ? '${(falta / 60).floor()}:${(falta % 60).floor().toString().padLeft(2, '0')}' : hora(llegada),
-                style: Tema.texto(size: 16, weight: FontWeight.w800, color: llegando ? Tema.verde : Tema.tinta),
+                llegando ? 'Ya está' : falta < 3600 ? '${(falta / 60).ceil()} min' : hora(llegada),
+                style: Tema.texto(size: 24, weight: FontWeight.w800, color: llegando ? Tema.verde : Tema.tinta),
               ),
               Text(hora(llegada), style: Tema.chico),
             ]),
@@ -235,9 +176,9 @@ class _FilaLlegada extends StatelessWidget {
             onTap: () => Navigator.of(context).push(CupertinoPageRoute<void>(builder: (_) => Parada3D(parada: parada))),
             child: Container(
               margin: const EdgeInsets.only(left: 4),
-              padding: const EdgeInsets.all(7),
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(color: Tema.amarillo, borderRadius: BorderRadius.circular(10)),
-              child: const Icon(Icons.view_in_ar_rounded, size: 20, color: Tema.tinta),
+              child: const Icon(Icons.view_in_ar_rounded, size: 26, color: Tema.tinta),
             ),
           ),
         ]),

@@ -18,7 +18,11 @@ class Tema {
   /// En las pruebas automáticas no se descargan letras de internet.
   static bool usarFuenteWeb = true;
 
+  /// Letra más grande en toda la app: pensada para personas mayores y niños.
+  static const escala = 1.12;
+
   static TextStyle texto({double size = 17, FontWeight weight = FontWeight.w400, Color color = tinta, double? height}) {
+    size = size * escala;
     if (!usarFuenteWeb) {
       return TextStyle(fontSize: size, fontWeight: weight, color: color, height: height, letterSpacing: -0.2);
     }
@@ -26,9 +30,9 @@ class Tema {
   }
 
   static TextStyle get titulo => texto(size: 22, weight: FontWeight.w700);
-  static TextStyle get subtitulo => texto(size: 15, color: gris);
-  static TextStyle get chico => texto(size: 13, color: gris);
-  static TextStyle get etiqueta => texto(size: 12, weight: FontWeight.w600, color: gris);
+  static TextStyle get subtitulo => texto(size: 16, color: gris);
+  static TextStyle get chico => texto(size: 14, color: gris);
+  static TextStyle get etiqueta => texto(size: 13, weight: FontWeight.w700, color: gris);
 
   static List<BoxShadow> get sombra => const [
         BoxShadow(color: Color(0x1A000000), blurRadius: 18, offset: Offset(0, 6)),
@@ -44,7 +48,7 @@ class Tema {
           textStyle: texto(),
           navTitleTextStyle: texto(size: 17, weight: FontWeight.w600),
           navLargeTitleTextStyle: texto(size: 34, weight: FontWeight.w800),
-          tabLabelTextStyle: texto(size: 10, weight: FontWeight.w500),
+          tabLabelTextStyle: texto(size: 11, weight: FontWeight.w700),
           actionTextStyle: texto(color: azul),
         ),
       );

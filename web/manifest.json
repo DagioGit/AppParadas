@@ -4,7 +4,7 @@
     "start_url": ".",
     "display": "standalone",
     "background_color": "#F2F2F7",
-    "theme_color": "#111111",
+    "theme_color": "#6E6E73",
     "description": "Rutas de combi de Lázaro Cárdenas y la ruta más rápida.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,

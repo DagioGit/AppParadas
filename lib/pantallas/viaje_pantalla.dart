@@ -31,13 +31,8 @@ class _ViajePantallaState extends State<ViajePantalla> {
   Lugar? _desde;
   Lugar? _hasta;
   List<Opcion>? _opciones;
-  double _calculadoA = 0;
-  String? _avisoUbicacion;
   int _sel = 0;
   final _hoja = DraggableScrollableController();
-
-  /// Minutos después de ahora a los que piensas salir (0, 10, 20 o 30).
-  int _salirEn = 0;
 
   /// Aviso de "sal ya / tu combi está llegando" para la opción elegida.
   bool _alerta = false;
@@ -89,8 +84,6 @@ class _ViajePantallaState extends State<ViajePantalla> {
     if (r.punto != null && r.problema == null) {
       setState(() => _desde ??= Lugar('Mi ubicación', 'Donde estás ahora', TipoLugar.ubicacion, r.punto!));
       _calcular();
-    } else {
-      setState(() => _avisoUbicacion = r.problema);
     }
   }
 
@@ -138,7 +131,7 @@ class _ViajePantallaState extends State<ViajePantalla> {
       setState(() => _opciones = null);
       return;
     }
-    final ahora = segundosAhora() + _salirEn * 60;
+    final ahora = segundosAhora();
     final ops = _planificador.planear(
       _desde!.punto,
       _hasta!.punto,
@@ -148,7 +141,6 @@ class _ViajePantallaState extends State<ViajePantalla> {
     );
     setState(() {
       _opciones = ops;
-      _calculadoA = ahora;
       _sel = 0;
       _avisados.clear();
     });
@@ -202,10 +194,10 @@ class _ViajePantallaState extends State<ViajePantalla> {
     }
 
     if (ahora >= salirA && ahora < t.inicio - 120) {
-      avisar('salir', '¡Sal ya! Camina ${duracion(caminar)} a ${t.sube!.nombre}: la ${t.ruta!.nombre} pasa a las ${hora(t.inicio)}.');
+      avisar('salir', '¡Sal ya! Camina a ${t.sube!.nombre}.');
     }
     if (ahora >= t.inicio - 120 && ahora < t.inicio) {
-      avisar('llega', 'La ${t.ruta!.nombre} llega a ${t.sube!.nombre} en menos de 2 min.');
+      avisar('llega', '¡Ya viene tu combi!');
     }
   }
 
@@ -221,7 +213,7 @@ class _ViajePantallaState extends State<ViajePantalla> {
       }
     }
     await Clipboard.setData(ClipboardData(text: b.toString()));
-    if (mounted) setState(() => _banner = 'Viaje copiado. Pégalo en WhatsApp para avisar por dónde vas.');
+    if (mounted) setState(() => _banner = 'Copiado. Pégalo en WhatsApp.');
   }
 
   void _abrir(Opcion o) => Navigator.of(context).push(CupertinoPageRoute<void>(
@@ -233,24 +225,6 @@ class _ViajePantallaState extends State<ViajePantalla> {
   Widget build(BuildContext context) {
     // Siempre el mapa 3D: se toca primero dónde estás y luego a dónde vas.
     return _conMapa(_opciones ?? const <Opcion>[]);
-    // ignore: dead_code
-    return CupertinoPageScaffold(
-      child: CustomScrollView(slivers: [
-        const CupertinoSliverNavigationBar(largeTitle: Text('Viaje')),
-        SliverList(
-          delegate: SliverChildListDelegate([
-            _formulario(),
-            if (_avisoUbicacion != null && _desde == null)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(32, 2, 32, 0),
-                child: Text('$_avisoUbicacion Elige de dónde sales.', style: Tema.chico),
-              ),
-            ..._resultados(),
-            SizedBox(height: MediaQuery.of(context).padding.bottom + 24),
-          ]),
-        ),
-      ]),
-    );
   }
 
   /// Con opciones: mapa 3D a pantalla completa, el formulario arriba y las opciones en un panel que se arrastra.
@@ -281,11 +255,11 @@ class _ViajePantallaState extends State<ViajePantalla> {
                 decoration: BoxDecoration(color: const Color(0xE6111111), borderRadius: BorderRadius.circular(20)),
                 child: Text(
                   _desde == null
-                      ? '1 · Toca el mapa donde estás'
+                      ? '1 · Toca donde estás'
                       : _hasta == null
-                          ? '2 · Ahora toca a dónde vas'
-                          : 'Toca el mapa para empezar otro viaje',
-                  style: Tema.texto(size: 14, weight: FontWeight.w600, color: const Color(0xFFFFFFFF)),
+                          ? '2 · Toca a dónde vas'
+                          : 'Toca para otro viaje',
+                  style: Tema.texto(size: 17, weight: FontWeight.w700, color: const Color(0xFFFFFFFF)),
                 ),
               ),
             ),
@@ -304,7 +278,7 @@ class _ViajePantallaState extends State<ViajePantalla> {
                 child: Row(children: [
                   const Icon(Icons.notifications_active_rounded, color: Tema.amarillo),
                   const SizedBox(width: 10),
-                  Expanded(child: Text(_banner!, style: Tema.texto(size: 14, weight: FontWeight.w600, color: const Color(0xFFFFFFFF)))),
+                  Expanded(child: Text(_banner!, style: Tema.texto(size: 18, weight: FontWeight.w700, color: const Color(0xFFFFFFFF)))),
                   const Icon(Icons.close_rounded, color: Tema.grisClaro, size: 18),
                 ]),
               ),
@@ -319,17 +293,17 @@ class _ViajePantallaState extends State<ViajePantalla> {
                     Padding(
                       padding: const EdgeInsets.fromLTRB(20, 0, 20, 4),
                       child: Text(
-                        _desde != null && _hasta != null ? 'Sin combis cerca de esos puntos' : '¿A dónde vas?',
-                        style: Tema.texto(size: 20, weight: FontWeight.w800),
+                        _desde != null && _hasta != null ? 'No hay combis ahí' : '¿A dónde vas?',
+                        style: Tema.texto(size: 26, weight: FontWeight.w800),
                       ),
                     ),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
                       child: Text(
                         _desde != null && _hasta != null
-                            ? 'Prueba con puntos más cerca de una ruta.'
-                            : 'Toca el mapa o escribe arriba los lugares.',
-                        style: Tema.subtitulo,
+                            ? 'Toca otro lugar del mapa.'
+                            : 'Toca el mapa.',
+                        style: Tema.texto(size: 19, color: Tema.gris),
                       ),
                     ),
                   ]
@@ -338,66 +312,49 @@ class _ViajePantallaState extends State<ViajePantalla> {
                 padding: const EdgeInsets.fromLTRB(20, 0, 12, 4),
                 child: Row(children: [
                   Expanded(
-                    child: Text('${ops.length} formas de llegar', style: Tema.texto(size: 20, weight: FontWeight.w800)),
+                    child: Text('${ops.length} formas de llegar', style: Tema.texto(size: 24, weight: FontWeight.w800)),
                   ),
                   CupertinoButton(
                     padding: const EdgeInsets.symmetric(horizontal: 8),
                     minimumSize: const Size(30, 30),
                     onPressed: _calcular,
-                    child: Text('Actualizar', style: Tema.texto(size: 14, weight: FontWeight.w600, color: Tema.azul)),
+                    child: const Icon(CupertinoIcons.arrow_clockwise, size: 26, color: Tema.azul),
                   ),
                 ]),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 2, 16, 8),
-                child: CupertinoSlidingSegmentedControl<int>(
-                  groupValue: _salirEn,
-                  onValueChanged: (v) {
-                    setState(() => _salirEn = v ?? 0);
-                    _calcular();
-                  },
-                  children: {
-                    for (final m in const [0, 10, 20, 30])
-                      m: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 6),
-                        child: Text(m == 0 ? 'Salir ahora' : '+$m min', style: Tema.texto(size: 13, weight: FontWeight.w600)),
-                      ),
-                  },
-                ),
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 6),
                 child: Row(children: [
                   Expanded(
                     child: CupertinoButton(
-                      padding: const EdgeInsets.symmetric(vertical: 9),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
                       color: _alerta ? Tema.verde : Tema.tarjeta,
                       borderRadius: BorderRadius.circular(12),
                       onPressed: () => setState(() {
                         _alerta = !_alerta;
                         _avisados.clear();
-                        _banner = _alerta ? 'Te aviso cuando tengas que salir y cuando tu combi esté por llegar.' : null;
+                        _banner = _alerta ? 'Te aviso cuando salir.' : null;
                       }),
                       child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                         Icon(_alerta ? Icons.notifications_active_rounded : Icons.notifications_none_rounded,
-                            size: 18, color: _alerta ? const Color(0xFFFFFFFF) : Tema.tinta),
+                            size: 22, color: _alerta ? const Color(0xFFFFFFFF) : Tema.tinta),
                         const SizedBox(width: 6),
                         Text(_alerta ? 'Aviso activado' : 'Avísame',
-                            style: Tema.texto(size: 14, weight: FontWeight.w700, color: _alerta ? const Color(0xFFFFFFFF) : Tema.tinta)),
+                            style: Tema.texto(size: 17, weight: FontWeight.w700, color: _alerta ? const Color(0xFFFFFFFF) : Tema.tinta)),
                       ]),
                     ),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: CupertinoButton(
-                      padding: const EdgeInsets.symmetric(vertical: 9),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
                       color: Tema.tarjeta,
                       borderRadius: BorderRadius.circular(12),
                       onPressed: () => _copiar(ops[_sel.clamp(0, ops.length - 1)]),
                       child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                        const Icon(Icons.ios_share_rounded, size: 18, color: Tema.tinta),
+                        const Icon(Icons.ios_share_rounded, size: 22, color: Tema.tinta),
                         const SizedBox(width: 6),
-                        Text('Compartir', style: Tema.texto(size: 14, weight: FontWeight.w700)),
+                        Text('Compartir', style: Tema.texto(size: 17, weight: FontWeight.w700)),
                       ]),
                     ),
                   ),
@@ -409,10 +366,6 @@ class _ViajePantallaState extends State<ViajePantalla> {
                   elegida: i == _sel,
                   onTap: () => i == _sel ? _abrir(ops[i]) : setState(() => _sel = i),
                 ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(32, 6, 32, 0),
-                child: Text('Tiempos estimados · rutas 3, 4 y 5 simuladas', style: Tema.chico),
-              ),
                   ],
           ),
         ),
@@ -469,66 +422,6 @@ class _ViajePantallaState extends State<ViajePantalla> {
       ]),
     );
   }
-
-  List<Widget> _resultados() {
-    final ops = _opciones;
-    if (ops == null) {
-      return [
-        const SizedBox(height: 30),
-        const Icon(Icons.directions_bus_rounded, size: 54, color: Tema.grisClaro),
-        const SizedBox(height: 10),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 40),
-          child: Text(
-            'Escribe a dónde vas y te mostramos qué combis te llevan y cuál llega primero.',
-            textAlign: TextAlign.center,
-            style: Tema.subtitulo,
-          ),
-        ),
-      ];
-    }
-    if (ops.isEmpty) {
-      return [
-        Padding(
-          padding: const EdgeInsets.all(32),
-          child: Text('No hay combis que te acerquen a ese lugar. Prueba con un punto más cerca de una ruta.',
-              textAlign: TextAlign.center, style: Tema.subtitulo),
-        ),
-      ];
-    }
-    void abrir(Opcion o) => Navigator.of(context).push(CupertinoPageRoute<void>(
-          title: 'Viaje',
-          builder: (_) => OpcionDetalle(opcion: o, origen: _desde!, destino: _hasta!),
-        ));
-    return [
-      MapaViaje(opciones: ops, origen: _desde!, destino: _hasta!, onTapOpcion: abrir),
-      Padding(
-        padding: const EdgeInsets.fromLTRB(32, 2, 32, 0),
-        child: Text('Toca un recorrido en el mapa para ver los detalles.', style: Tema.chico),
-      ),
-      Padding(
-        padding: const EdgeInsets.fromLTRB(32, 14, 20, 6),
-        child: Row(children: [
-          Expanded(child: Text('${ops.length} OPCIONES · SALIENDO A LAS ${hora(_calculadoA)}', style: Tema.etiqueta)),
-          CupertinoButton(
-            padding: EdgeInsets.zero,
-            minimumSize: const Size(24, 24),
-            onPressed: _calcular,
-            child: Text('Actualizar', style: Tema.texto(size: 13, weight: FontWeight.w600, color: Tema.azul)),
-          ),
-        ]),
-      ),
-      for (final o in ops)
-        TarjetaOpcion(opcion: o, onTap: () => abrir(o)),
-      Padding(
-        padding: const EdgeInsets.fromLTRB(32, 6, 32, 0),
-        child: Text(
-          'Tiempos estimados con el horario de cada ruta. Las rutas 3, 4 y 5 son simuladas.',
-          style: Tema.chico,
-        ),
-      ),
-    ];
-  }
 }
 
 /// Tarjeta de una opción: tiempo total, hora de llegada y la secuencia caminar → combi → caminar.
@@ -542,17 +435,6 @@ class TarjetaOpcion extends StatelessWidget {
   Widget build(BuildContext context) {
     final o = opcion;
     final primera = o.enCombi.isEmpty ? null : o.enCombi.first;
-    String resumen;
-    if (o.soloAPie) {
-      resumen = 'Caminando ${(o.metrosAPie / 1000).toStringAsFixed(1)} km';
-    } else {
-      final partes = <String>[
-        'Sube en ${primera!.desdeNombre}',
-        if (o.transbordos > 0) '${o.transbordos} transbordo',
-        '${duracion(o.aPie)} a pie',
-      ];
-      resumen = partes.join(' · ');
-    }
 
     return Tarjeta(
       onTap: onTap,
@@ -566,17 +448,17 @@ class TarjetaOpcion extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
             decoration: BoxDecoration(color: Tema.verdeClaro, borderRadius: BorderRadius.circular(8)),
             child: Row(mainAxisSize: MainAxisSize.min, children: [
-              const Icon(Icons.bolt_rounded, size: 16, color: Tema.verde),
+              const Icon(Icons.bolt_rounded, size: 20, color: Tema.verde),
               const SizedBox(width: 3),
-              Text('La más rápida', style: Tema.texto(size: 13, weight: FontWeight.w700, color: Tema.verde)),
+              Text('La más rápida', style: Tema.texto(size: 16, weight: FontWeight.w800, color: Tema.verde)),
             ]),
           ),
         Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
-          Text(duracion(o.total), style: Tema.texto(size: 28, weight: FontWeight.w800)),
+          Text(duracion(o.total), style: Tema.texto(size: 32, weight: FontWeight.w800)),
           const SizedBox(width: 8),
           Padding(
             padding: const EdgeInsets.only(bottom: 4),
-            child: Text('llegas ${hora(o.llegada)}', style: Tema.subtitulo),
+            child: Text('llegas ${hora(o.llegada)}', style: Tema.texto(size: 18, color: Tema.gris)),
           ),
           const Spacer(),
           const Padding(
@@ -593,19 +475,18 @@ class TarjetaOpcion extends StatelessWidget {
           ConReloj(
             cada: const Duration(seconds: 1),
             builder: (context, ahora) => Row(children: [
-              Icon(Icons.directions_bus_rounded, size: 17, color: primera.ruta!.color),
+              Icon(Icons.directions_bus_rounded, size: 24, color: primera.ruta!.color),
               const SizedBox(width: 5),
               Expanded(
                 child: Text(
-                  'La ${primera.ruta!.nombre} pasa ${faltaTexto(primera.inicio, ahora)} · ${hora(primera.inicio)}',
-                  style: Tema.texto(size: 14, weight: FontWeight.w600),
+                  'Pasa ${faltaTexto(primera.inicio, ahora)}',
+                  style: Tema.texto(size: 19, weight: FontWeight.w700),
                 ),
               ),
             ]),
           ),
         ],
-        const SizedBox(height: 6),
-        Text(resumen, style: Tema.chico),
+
       ]),
     );
   }
