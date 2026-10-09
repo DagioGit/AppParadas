@@ -61,6 +61,14 @@ await pagina.goto("http://localhost:8099" + BASE + "?tab=viaje&desde=gomez%20sad
 await pagina.waitForTimeout(25000);
 await pagina.screenshot({ path: path.join(salida, "2b-viaje-despues.png") });
 
+// Ajustes más abajo (apariencia)
+await pagina.goto("http://localhost:8099" + BASE + "?tab=ajustes&tema=oscuro", { waitUntil: "load" });
+await pagina.waitForTimeout(9000);
+await pagina.mouse.move(195, 600);
+await pagina.mouse.wheel(0, 700);
+await pagina.waitForTimeout(2000);
+await pagina.screenshot({ path: path.join(salida, "11b-ajustes-abajo.png") });
+
 // Lista de paradas (más abajo en la pestaña Paradas)
 await pagina.goto("http://localhost:8099" + BASE + "?tab=paradas", { waitUntil: "load" });
 await pagina.waitForTimeout(9000);

@@ -67,7 +67,7 @@ class _ParadasPantallaState extends State<ParadasPantalla> {
                     for (var i = 0; i < sentidos.length; i++)
                       i: Padding(
                         padding: EdgeInsets.symmetric(vertical: Tema.b(12)),
-                        child: Text(sentidos[i], style: Tema.texto(size: 17, weight: FontWeight.w700)),
+                        child: FittedBox(fit: BoxFit.scaleDown, child: Text(sentidos[i], maxLines: 1, style: Tema.texto(size: 17, weight: FontWeight.w700))),
                       ),
                   },
                 ),
