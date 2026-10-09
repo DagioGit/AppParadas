@@ -7,6 +7,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'ajustes.dart';
 import 'datos/lugares.dart';
 import 'estado.dart';
+import 'modelo/calles.dart';
 import 'modelo/ruta.dart';
 import 'pantallas/ajustes_pantalla.dart';
 import 'pantallas/buscar_lugar.dart';
@@ -19,6 +20,7 @@ import 'tema.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await ajustes.cargar();
+  await GrafoCalles.cargar(); // calles para trazar los recorridos a pie
   // Para revisar el diseño desde la web: ?tema=oscuro, ?letra=1.45, ?botones=grandes
   final q = Uri.base.queryParameters;
   if (q['tema'] == 'oscuro') ajustes.apariencia = 2;

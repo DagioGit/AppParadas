@@ -1,5 +1,8 @@
 import 'package:app_paradas/ajustes.dart';
 import 'package:app_paradas/datos/lugares.dart';
+import 'package:app_paradas/modelo/calles.dart';
+import 'package:app_paradas/modelo/geo.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:app_paradas/pantallas/ajustes_pantalla.dart';
 import 'package:app_paradas/pantallas/buscar_lugar.dart';
 import 'package:app_paradas/widgets/dictado.dart';
@@ -61,5 +64,17 @@ void main() {
     expect(entenderDestino('¿Cómo llego a la Plaza Las Américas, por favor?'), (null, 'plaza las américas'));
     expect(entenderDestino('de la Gómez Sada al centro'), ('gómez sada', 'centro'));
     expect(entenderDestino('Llévame al monumento a Lázaro Cárdenas').$2, 'monumento a lázaro cárdenas');
+  });
+
+  test('Los recorridos a pie van por las calles, no en línea recta', () async {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    await GrafoCalles.cargar();
+    final g = GrafoCalles.instancia;
+    expect(g, isNotNull);
+    const a = LatLng(17.9727, -102.2163), b = LatLng(17.96237, -102.19884);
+    final c = g!.ruta(a, b)!;
+    expect(c.puntos.length, greaterThan(10));
+    expect(c.metros, greaterThan(distanciaM(a, b)));
+    expect(c.indicaciones.any((i) => i.calle.contains('Lázaro Cárdenas')), isTrue);
   });
 }

@@ -112,7 +112,12 @@ class _Paso extends StatelessWidget {
         icono: Icons.directions_walk_rounded,
         color: Tema.gris,
         titulo: 'Camina ${duracion(t.segundos)} a $destino',
-        detalle: '${t.metros.round()} m · ${hora(t.inicio)}',
+        detalle: t.indicaciones.isEmpty
+            ? '${t.metros.round()} m · ${hora(t.inicio)}'
+            : '${t.metros.round()} m · ${hora(t.inicio)}\n${[
+                for (final x in t.indicaciones.take(4))
+                  '${x.giro == 'derecha' ? '↱ ' : x.giro == 'izquierda' ? '↰ ' : x.giro == 'derecho' ? '↑ ' : ''}${x.calle.isEmpty ? 'calle' : x.calle} ${x.metros.round()} m',
+              ].join('\n')}',
       );
     }
     final r = t.ruta!;

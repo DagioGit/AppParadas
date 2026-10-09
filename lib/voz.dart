@@ -68,7 +68,10 @@ String textoOpcion(Opcion o, double ahora, {bool masRapida = false}) {
   var primera = true;
   for (final t in o.tramos) {
     if (t.tipo == TipoTramo.pie) {
-      if (t.segundos >= 60) b.write('Camina ${duracion(t.segundos)} hasta ${t.hastaNombre}. ');
+      if (t.segundos >= 60) {
+        final por = t.indicaciones.isNotEmpty && t.indicaciones.first.calle.isNotEmpty ? ' ${t.indicaciones.first.porDonde}' : '';
+        b.write('Camina ${duracion(t.segundos)}$por hasta ${t.hastaNombre}. ');
+      }
     } else {
       b.write('${primera ? 'Toma' : 'Luego toma'} la ${t.ruta!.nombre} en ${t.sube!.nombre}; pasa ${cuandoHablado(t.inicio, ahora)}. ');
       b.write('Bájate en ${t.baja!.nombre}. ');

@@ -7,6 +7,7 @@ import 'dart:math' as math;
 import 'package:latlong2/latlong.dart';
 
 import '../voz.dart' show cuandoHablado;
+import 'calles.dart';
 import 'geo.dart';
 import 'planificador.dart';
 import 'ruta.dart';
@@ -68,7 +69,7 @@ class MotorGuia {
       return m == null ? t.hasta : t.ruta!.trazo.puntoEn(m);
     }
     final u = ((ahora - t.inicio) / math.max(1, t.fin - t.inicio)).clamp(0.0, 1.0);
-    return LatLng(t.desde.latitude + (t.hasta.latitude - t.desde.latitude) * u, t.desde.longitude + (t.hasta.longitude - t.desde.longitude) * u);
+    return puntoEnTrazo(t.puntos, t.metros * u);
   }
 
   /// Paradas que faltan (contando la de bajada) para la combi del tramo [t] en el segundo [ahora].
@@ -102,8 +103,9 @@ class MotorGuia {
 
       if (t.tipo == TipoTramo.pie) {
         final aqui = pos ?? posEstimada(ahora);
-        final dist = pos != null ? distanciaM(pos, t.hasta) : math.max(0.0, t.metros * (t.fin - ahora) / math.max(1, t.fin - t.inicio));
-        final llego = dist < 25 || (pos == null && ahora >= t.fin) || t.segundos < 20;
+        final (idx, resto) = avanceEnTrazo(t.puntos, aqui);
+        final dist = pos != null ? math.min(resto, distanciaM(pos, t.hasta) * 1.6) : resto;
+        final llego = (pos != null ? distanciaM(pos, t.hasta) < 25 : ahora >= t.fin) || t.segundos < 20 || dist < 12;
         if (llego) {
           if (esUltimo) {
             i++;
@@ -115,13 +117,49 @@ class MotorGuia {
           final e = paso(ahora, pos);
           return ultimo = EstadoGuia(e.tipo, e.titulo, e.detalle, _juntar(dicho, e.decir));
         }
-        final hacia = haciaDonde(aqui, t.hasta);
         final meta = esUltimo ? destino : 'la parada ${t.hastaNombre}';
+        final ind = t.indicaciones;
+        if (ind.isEmpty) {
+          // Sin calles: distancia y hacia dónde
+          final hacia = haciaDonde(aqui, t.hasta);
+          return ultimo = EstadoGuia(
+            TipoPaso.caminar,
+            'Camina ${metrosHablados(dist)}',
+            '$hacia, hasta $meta.',
+            _una('pie-$i-${(dist / 100).ceil()}', 'Camina ${metrosHablados(dist)} $hacia, hasta $meta.'),
+          );
+        }
+        // Calle por calle: en qué calle va y cuál es la siguiente vuelta
+        var k = 0;
+        while (k + 1 < ind.length && ind[k + 1].desde <= idx) {
+          k++;
+        }
+        final sigInd = k + 1 < ind.length ? ind[k + 1] : null;
+        var hastaVuelta = dist;
+        if (sigInd != null) {
+          hastaVuelta = distanciaM(aqui, t.puntos[math.min(idx + 1, t.puntos.length - 1)]);
+          for (var j = idx + 1; j < sigInd.desde && j + 1 < t.puntos.length; j++) {
+            hastaVuelta += distanciaM(t.puntos[j], t.puntos[j + 1]);
+          }
+        }
+        String vuelta(Indicacion x) => x.giro == 'derecho'
+            ? 'sigue derecho ${x.porDonde}'
+            : 'gira a la ${x.giro.isEmpty ? 'derecha' : x.giro} ${x.calle.isEmpty ? '' : 'en ${x.calle}'}'.trim();
+        final cur = ind[k];
+        final hacia = k == 0 ? ' ${haciaDonde(aqui, t.puntos[math.min(idx + 2, t.puntos.length - 1)])}' : '';
+        final texto = sigInd == null
+            ? 'Camina ${metrosHablados(dist)} ${cur.porDonde}$hacia hasta $meta.'
+            : 'Camina ${metrosHablados(hastaVuelta)} ${cur.porDonde}$hacia; luego ${vuelta(sigInd)}.';
+        String? dicho = _una('pie-$i-$k', texto);
+        if (dicho == null && sigInd != null && hastaVuelta < 30) {
+          dicho = _una('vuelta-$i-$k', 'Ahora ${vuelta(sigInd)}.');
+        }
+        dicho ??= _una('pie-$i-$k-${(hastaVuelta / 150).ceil()}', texto);
         return ultimo = EstadoGuia(
           TipoPaso.caminar,
-          'Camina ${metrosHablados(dist)}',
-          '$hacia, hasta $meta.',
-          _una('pie-$i-${(dist / 100).ceil()}', 'Camina ${metrosHablados(dist)} $hacia, hasta $meta.'),
+          'Camina ${metrosHablados(sigInd == null ? dist : hastaVuelta)}',
+          sigInd == null ? '${cur.porDonde[0].toUpperCase()}${cur.porDonde.substring(1)} hasta $meta.' : '${cur.porDonde[0].toUpperCase()}${cur.porDonde.substring(1)}; luego ${vuelta(sigInd)}.',
+          dicho,
         );
       }
 

@@ -6,6 +6,7 @@
 
 import 'package:latlong2/latlong.dart';
 
+import 'calles.dart';
 import 'geo.dart';
 import 'ruta.dart';
 
@@ -35,6 +36,9 @@ class Tramo {
   final double espera; // segundos esperando en la parada antes de este tramo
   final List<LatLng> puntos;
 
+  /// Sólo a pie: por qué calles ir ("Camina 120 m por Calle Mina; gira a la derecha…").
+  final List<Indicacion> indicaciones;
+
   Tramo({
     required this.tipo,
     required this.inicio,
@@ -49,7 +53,23 @@ class Tramo {
     this.baja,
     this.espera = 0,
     required this.puntos,
+    this.indicaciones = const [],
   });
+
+  /// El mismo tramo a pie, pero trazado calle por calle.
+  Tramo porCalles(Camino c) => Tramo(
+        tipo: tipo,
+        inicio: inicio,
+        fin: fin,
+        desde: desde,
+        hasta: hasta,
+        desdeNombre: desdeNombre,
+        hastaNombre: hastaNombre,
+        metros: c.metros,
+        espera: espera,
+        puntos: c.puntos,
+        indicaciones: c.indicaciones,
+      );
 
   double get segundos => fin - inicio;
   int get paradas => (ruta != null && sube != null && baja != null) ? ruta!.paradasEntre(sube!, baja!) + 1 : 0;
@@ -172,7 +192,19 @@ class Planificador {
       combis.sort((a, b) => a.llegada.compareTo(b.llegada));
     }
     if (combis.isNotEmpty) combis.first.masRapida = true;
-    return combis;
+    return [for (final o in combis) _conCalles(o)];
+  }
+
+  /// Cambia las líneas rectas de los tramos a pie por el recorrido real por las calles.
+  Opcion _conCalles(Opcion o) {
+    final g = GrafoCalles.instancia;
+    if (g == null) return o;
+    final r = Opcion([
+      for (final t in o.tramos)
+        if (t.tipo == TipoTramo.pie && distanciaM(t.desde, t.hasta) > 15) t.porCalles(g.ruta(t.desde, t.hasta) ?? Camino(t.puntos, t.metros, const [])) else t,
+    ], o.salida);
+    r.masRapida = o.masRapida;
+    return r;
   }
 
   Map<String, Opcion> _buscar(LatLng o, LatLng d, double ahora, String on, String dn, double radio, double radioT) {
