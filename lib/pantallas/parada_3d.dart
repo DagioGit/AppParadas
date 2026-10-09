@@ -39,6 +39,7 @@ class Parada3D extends StatelessWidget {
       'f': '${r.frecuenciaMin}',
       'd': p.desfase.toStringAsFixed(0),
       'espera': esperaEnParada.toStringAsFixed(0),
+      'fin': r.salidas.last.toStringAsFixed(0),
     }).toString();
   }
 
@@ -108,7 +109,9 @@ class _ParadaVisorWeb extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   decoration: BoxDecoration(color: const Color(0xF0111111), borderRadius: BorderRadius.circular(24), boxShadow: Tema.sombra),
                   child: Text(
-                    enParada
+                    !enServicio(ahora)
+                        ? 'Combis no disponibles hasta las $horaInicioServicio'
+                        : enParada
                         ? 'Combi en la parada'
                         : falta < 3600
                             ? 'Próxima combi en ${(falta / 60).floor()}:${(falta % 60).floor().toString().padLeft(2, '0')} · ${hora(llegada)}'
@@ -311,14 +314,18 @@ class _Parada3DState extends State<_Parada3DMapa> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
-                    enParada ? 'EN PARADA' : _texto(llegadas.first - ahora).toUpperCase(),
+                    !enServicio(ahora) ? 'SIN COMBIS' : enParada ? 'EN PARADA' : _texto(llegadas.first - ahora).toUpperCase(),
                     style: Tema.textoFijo(size: 22, weight: FontWeight.w800, color: enParada ? Tema.verdeFijo : Tema.amarillo),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    enParada ? 'La combi está subiendo y bajando gente' : 'Próxima combi · ${hora(llegadas.first)}',
+                    !enServicio(ahora)
+                        ? 'Combis no disponibles hasta las $horaInicioServicio'
+                        : enParada
+                            ? 'La combi está subiendo y bajando gente'
+                            : 'Próxima combi · ${hora(llegadas.first)}',
                     style: Tema.textoFijo(size: 15, weight: FontWeight.w600),
                   ),
                 ),

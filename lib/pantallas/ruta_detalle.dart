@@ -86,12 +86,13 @@ class _RutaDetalleState extends State<RutaDetalle> {
             const SizedBox(height: 14),
             Row(children: [
               _Dato('Cada', '${r.frecuenciaMin} min'),
-              _Dato('Horario', '6 a 22 h'),
+              _Dato('Horario', '6 a 21 h'),
               _Dato('Vuelta', '${r.vueltaMin.round()} min'),
               _Dato('Largo', '${(r.trazo.largo / 1000).toStringAsFixed(1)} km'),
             ]),
           ]),
         ),
+        if (!enServicio(segundosAhora())) const AvisoSinServicio(),
         const Encabezado('Paradas y próxima combi'),
         Tarjeta(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),

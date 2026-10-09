@@ -26,6 +26,9 @@ Future<void> main() async {
   final letra = double.tryParse(q['letra'] ?? '');
   if (letra != null) ajustes.letra = letra;
   if (q['botones'] == 'grandes') ajustes.botonesGrandes = true;
+  // ?hora=22.5 simula que son las 22:30 (para ver cómo se ve la app de noche)
+  final h = double.tryParse(q['hora'] ?? '');
+  if (h != null) ajusteReloj = h * 3600 - segundosAhora();
   runApp(const CombiLZC());
 }
 

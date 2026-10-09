@@ -238,7 +238,8 @@ class _ViajePantallaState extends State<ViajePantalla> {
   @override
   Widget build(BuildContext context) {
     // Siempre el mapa 3D: se toca primero dónde estás y luego a dónde vas.
-    return _conMapa(_opciones ?? const <Opcion>[]);
+    // De 21:00 a 6:00 no hay combis: no se muestran opciones.
+    return _conMapa(enServicio(segundosAhora()) ? (_opciones ?? const <Opcion>[]) : const <Opcion>[]);
   }
 
   /// Con opciones: mapa 3D a pantalla completa, el formulario arriba y las opciones en un panel que se arrastra.
@@ -325,7 +326,9 @@ class _ViajePantallaState extends State<ViajePantalla> {
           child: HojaDeslizable(
             controlador: _hoja,
             inicial: 0.32,
-            hijos: (ahora) => ops.isEmpty
+            hijos: (ahora) => !enServicio(ahora)
+                ? [const AvisoSinServicio(margin: EdgeInsets.fromLTRB(16, 2, 16, 6))]
+                : ops.isEmpty
                 ? [
                     Padding(
                       padding: const EdgeInsets.fromLTRB(20, 0, 20, 4),

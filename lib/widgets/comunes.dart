@@ -468,3 +468,100 @@ class HojaDeslizable extends StatelessWidget {
     );
   }
 }
+
+// ---------------- Sin servicio (de noche) ----------------
+
+/// La combi del logo apagada: en gris, con una raya roja encima y una lunita.
+class CombiApagada extends StatelessWidget {
+  final double tam;
+  const CombiApagada({super.key, this.tam = 60});
+
+  static const _gris = ColorFilter.matrix(<double>[
+    0.2126, 0.7152, 0.0722, 0, 0, //
+    0.2126, 0.7152, 0.0722, 0, 0, //
+    0.2126, 0.7152, 0.0722, 0, 0, //
+    0, 0, 0, 1, 0, //
+  ]);
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: tam,
+      height: tam,
+      child: Stack(clipBehavior: Clip.none, children: [
+        Positioned.fill(
+          child: Opacity(
+            opacity: 0.55,
+            child: ColorFiltered(
+              colorFilter: _gris,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(tam * 0.24),
+                child: Image.asset('assets/logo.png', fit: BoxFit.cover),
+              ),
+            ),
+          ),
+        ),
+        Positioned.fill(child: CustomPaint(painter: _Raya())),
+        Positioned(
+          right: -tam * 0.1,
+          bottom: -tam * 0.1,
+          child: Container(
+            width: tam * 0.42,
+            height: tam * 0.42,
+            decoration: BoxDecoration(
+              color: const Color(0xFF1C1C3A),
+              shape: BoxShape.circle,
+              border: Border.all(color: Tema.tarjeta, width: 2.5),
+            ),
+            child: Icon(Icons.nightlight_round, size: tam * 0.24, color: const Color(0xFFFFD60A)),
+          ),
+        ),
+      ]),
+    );
+  }
+}
+
+class _Raya extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final a = Offset(size.width * 0.12, size.height * 0.12);
+    final b = Offset(size.width * 0.88, size.height * 0.88);
+    canvas.drawLine(a, b, Paint()
+      ..color = const Color(0xFFFFFFFF)
+      ..strokeWidth = size.width * 0.13
+      ..strokeCap = StrokeCap.round);
+    canvas.drawLine(a, b, Paint()
+      ..color = const Color(0xFFFF3B30)
+      ..strokeWidth = size.width * 0.075
+      ..strokeCap = StrokeCap.round);
+  }
+
+  @override
+  bool shouldRepaint(_Raya old) => false;
+}
+
+/// Tarjeta de "Combis no disponibles hasta las 6:00 am" (de 21:00 a 6:00).
+class AvisoSinServicio extends StatelessWidget {
+  final EdgeInsets margin;
+  const AvisoSinServicio({super.key, this.margin = const EdgeInsets.symmetric(horizontal: 16, vertical: 6)});
+
+  @override
+  Widget build(BuildContext context) {
+    return Tarjeta(
+      margin: margin,
+      padding: const EdgeInsets.fromLTRB(16, 18, 16, 18),
+      child: Row(children: [
+        const CombiApagada(tam: 62),
+        const SizedBox(width: 18),
+        Expanded(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text('Combis no disponibles', style: Tema.texto(size: 19, weight: FontWeight.w800)),
+            Text('hasta las $horaInicioServicio', style: Tema.texto(size: 19, weight: FontWeight.w800, color: Tema.rojo)),
+            const SizedBox(height: 4),
+            Text('Pasan de 6:00 am a 9:00 pm', style: Tema.chico),
+          ]),
+        ),
+      ]),
+    );
+  }
+}

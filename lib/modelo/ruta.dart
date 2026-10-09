@@ -8,9 +8,18 @@ import '../datos/rutas_modelo_datos.dart';
 import '../datos/semaforos.dart';
 import 'geo.dart';
 
-/// Servicio de 6:00 a 22:00 (última salida a las 22:00).
+/// Las combis pasan de 6:00 a 21:00: la última sale a tiempo para terminar su vuelta a las 21:00.
 const int inicioServicio = 6 * 3600;
-const int finServicio = 22 * 3600;
+const int finServicio = 21 * 3600;
+
+/// ¿Hay combis pasando a la hora [t] (segundos del día)?
+bool enServicio(double t) {
+  final s = t % segundosDia;
+  return s >= inicioServicio && s < finServicio;
+}
+
+/// "6:00 am" (texto de cuándo vuelven a pasar las combis).
+String get horaInicioServicio => '${inicioServicio ~/ 3600}:00 am';
 const int segundosDia = 86400;
 
 /// Segundos típicos que la combi se detiene en una parada principal (hora normal).
@@ -37,7 +46,7 @@ double horaPico(double seg) {
 /// Cuánto más lento va el tráfico: 1 = normal, 1.4 = 40 % más lento. De noche, un poco más rápido.
 double factorTrafico(double seg) {
   final h = (seg % segundosDia) / 3600;
-  final noche = h >= 21 ? 0.08 : 0.0;
+  final noche = h >= 20 ? 0.06 : 0.0;
   return 1 + 0.4 * horaPico(seg) - noche;
 }
 
@@ -284,13 +293,17 @@ class Ruta {
     pausas = lista;
     semaforosEnRuta = enRuta;
 
+    // Salidas: más seguidas en hora pico, más espaciadas al final del día, y la última
+    // sale a tiempo para terminar su vuelta antes de las 21:00.
     final sal = <double>[];
     var t = inicioServicio.toDouble();
-    while (t <= finServicio) {
+    while (true) {
+      final v = Vuelta(this, sal.length, t);
+      if (t + v.duracion > finServicio) break;
+      _vueltas[sal.length] = v;
       sal.add(t);
-      final h = t / 3600;
       var hueco = frecuenciaSeg / (1 + 0.35 * horaPico(t));
-      if (h >= 20.5) hueco *= 1.3;
+      if (t >= 19.75 * 3600) hueco *= 1.3;
       t += (hueco / 30).round() * 30.0;
     }
     salidas = sal;
@@ -457,10 +470,14 @@ final List<Ruta> rutas = [for (final d in rutasDatos) Ruta(d)];
 
 Ruta rutaPorId(String id) => rutas.firstWhere((r) => r.id == id);
 
+/// Para probar a otra hora (versión web: ?hora=22.5): segundos que se suman al reloj.
+double ajusteReloj = 0;
+
 /// Segundos transcurridos del día de hoy.
 double segundosAhora() {
   final a = DateTime.now();
-  return a.hour * 3600.0 + a.minute * 60 + a.second + a.millisecond / 1000;
+  final s = a.hour * 3600.0 + a.minute * 60 + a.second + a.millisecond / 1000 + ajusteReloj;
+  return ((s % segundosDia) + segundosDia) % segundosDia;
 }
 
 /// "14:05" (si pasa de medianoche, "mañana 6:12").

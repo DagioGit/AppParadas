@@ -111,4 +111,18 @@ void main() {
     final pas = r.pasadaDe(p, llega);
     expect(pas.salida + pas.vuelta.llegadas[p.indice], closeTo(llega, 0.01));
   });
+
+  test('Las combis pasan de 6:00 a 21:00', () {
+    for (final r in rutas) {
+      expect(r.salidas.first, 6 * 3600);
+      for (var k = 0; k < r.salidas.length; k++) {
+        expect(r.salidas[k] + r.vuelta(k).duracion, lessThanOrEqualTo(21 * 3600));
+      }
+      expect(r.combisEn(21 * 3600 + 60), isEmpty);
+      expect(r.combisEn(20 * 3600), isNotEmpty);
+    }
+    expect(enServicio(21.5 * 3600), isFalse);
+    expect(enServicio(5.9 * 3600), isFalse);
+    expect(enServicio(12 * 3600), isTrue);
+  });
 }

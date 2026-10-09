@@ -98,7 +98,10 @@ class _HojaParadaState extends State<HojaParada> {
             ]),
           ),
           const Encabezado('Próxima combi'),
-          Tarjeta(
+          if (!enServicio(ahora))
+            const AvisoSinServicio()
+          else
+            Tarjeta(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             child: Column(children: [
               for (var i = 0; i < llegadas.length; i++)

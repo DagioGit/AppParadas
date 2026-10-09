@@ -75,13 +75,16 @@ class _ParadasPantallaState extends State<ParadasPantalla> {
             const SizedBox(height: 10),
             ConReloj(
               cada: const Duration(seconds: 1),
-              builder: (context, ahora) => Tarjeta(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-                child: Column(children: [
-                  for (var i = 0; i < paradas.length; i++)
-                    _FilaLlegada(parada: paradas[i], numero: i + 1, ahora: ahora, primera: i == 0),
-                ]),
-              ),
+              builder: (context, ahora) => Column(children: [
+                if (!enServicio(ahora)) const AvisoSinServicio(),
+                Tarjeta(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                  child: Column(children: [
+                    for (var i = 0; i < paradas.length; i++)
+                      _FilaLlegada(parada: paradas[i], numero: i + 1, ahora: ahora, primera: i == 0),
+                  ]),
+                ),
+              ]),
             ),
             SizedBox(height: MediaQuery.of(context).padding.bottom + 24),
           ]),
