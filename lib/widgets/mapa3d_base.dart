@@ -159,7 +159,7 @@ Future<void> prepararEscena(ml.MapLibreMapController c) async {
       textHaloColor: '#ffffff',
       textHaloWidth: 2.5,
       textAnchor: 'bottom',
-      textOffset: [0, -1.6],
+      textOffset: ['coalesce', ['get', 'offset'], ['literal', [0, -1.6]]],
       textAllowOverlap: false,
       textIgnorePlacement: false,
       symbolSortKey: ['get', 'prioridad'],
@@ -168,7 +168,6 @@ Future<void> prepararEscena(ml.MapLibreMapController c) async {
   );
 }
 
-/// Dibuja el ícono del semáforo (caja negra con luz roja, amarilla y verde y su poste) como PNG.
 Future<Uint8List> _png(ui.Picture p, int w, int h) async {
   final img = await p.toImage(w, h);
   final datos = await img.toByteData(format: ui.ImageByteFormat.png);
@@ -222,6 +221,7 @@ Future<Uint8List> iconoDestinoPng() async {
   return _png(g.endRecording(), w.toInt(), h.toInt());
 }
 
+/// Dibuja el ícono del semáforo (caja negra con luz roja, amarilla y verde y su poste) como PNG.
 Future<Uint8List> iconoSemaforoPng() async {
   const w = 44.0, h = 104.0;
   final grabadora = ui.PictureRecorder();

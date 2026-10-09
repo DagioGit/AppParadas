@@ -240,8 +240,9 @@ Map<String, dynamic> geoPie(Opcion? o) => coleccion([
 
 /// Texto flotante sobre el mapa.
 /// [prioridad]: las de número menor se colocan primero y no se tapan.
-Map<String, dynamic> etiqueta(LatLng p, String texto, Color color, {int prioridad = 5}) =>
-    punto(p, {'texto': texto, 'color': hexColor(color), 'prioridad': prioridad});
+/// [sobre]: cuántas líneas de texto arriba del punto va la etiqueta (más alto sobre el pin de destino).
+Map<String, dynamic> etiqueta(LatLng p, String texto, Color color, {int prioridad = 5, double sobre = 1.6}) =>
+    punto(p, {'texto': texto, 'color': hexColor(color), 'prioridad': prioridad, 'offset': [0, -sobre]});
 
 
 // ---------------- Vista de parada en 3D (escala real) ----------------

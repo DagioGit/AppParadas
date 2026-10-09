@@ -235,8 +235,8 @@ class _MapaViaje3DState extends State<MapaViaje3D> {
         }
       }
     }
-    if (widget.destino != null) etiquetas.add(etiqueta(widget.destino!.punto, widget.destino!.nombre, const Color(0xFFD70015), prioridad: 3));
-    if (widget.origen != null) etiquetas.add(etiqueta(widget.origen!.punto, 'Sales de aquí', Tema.azul, prioridad: 3));
+    if (widget.destino != null) etiquetas.add(etiqueta(widget.destino!.punto, widget.destino!.nombre, const Color(0xFFD70015), prioridad: 3, sobre: 4.3));
+    if (widget.origen != null) etiquetas.add(etiqueta(widget.origen!.punto, 'Sales de aquí', Tema.azul, prioridad: 3, sobre: 2.1));
 
     await c.setGeoJsonSource('viaje', coleccion(lineas));
     await c.setGeoJsonSource('combis', coleccion(combis));
