@@ -1,7 +1,11 @@
 // Semáforos sobre la Av. Lázaro Cárdenas (Ruta 1).
 // El del entronque coincide con OpenStreetMap; los demás los marcó el equipo.
 
+import 'dart:math' as math;
+
 import 'package:latlong2/latlong.dart';
+
+import 'semaforos_osm.dart';
 
 class Semaforo {
   final String nombre;
@@ -13,7 +17,8 @@ class Semaforo {
 /// Segundos que, en promedio, una combi se detiene en cada semáforo (simulado).
 const double esperaSemaforo = 25;
 
-const List<Semaforo> semaforos = [
+/// Semáforos que marcó el equipo sobre la Av. Lázaro Cárdenas.
+const List<Semaforo> semaforosEquipo = [
   Semaforo(
     'Semáforo del entronque',
     'Av. Lázaro Cárdenas con Prol. Tulipanes, Av. Las Palmas y Blvd. de las Islas',
@@ -49,4 +54,18 @@ const List<Semaforo> semaforos = [
     'Av. Lázaro Cárdenas con Av. Constitución de 1917 y Av. Reforma',
     LatLng(17.953756, -102.192092),
   ),
+];
+
+double _metros(LatLng a, LatLng b) {
+  final dy = (a.latitude - b.latitude) * 110570;
+  final dx = (a.longitude - b.longitude) * 111320 * math.cos(a.latitude * math.pi / 180);
+  return math.sqrt(dx * dx + dy * dy);
+}
+
+/// Todos los semáforos de la ciudad: los del equipo y los de OpenStreetMap
+/// (sin repetir los que ya marcó el equipo en el mismo cruce).
+final List<Semaforo> semaforos = [
+  ...semaforosEquipo,
+  for (final s in semaforosOsm)
+    if (!semaforosEquipo.any((e) => _metros(e.punto, s.punto) < 45)) s,
 ];

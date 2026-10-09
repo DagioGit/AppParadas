@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_map/flutter_map.dart';
 
+import '../datos/semaforos.dart';
 import '../modelo/ruta.dart';
 import '../tema.dart';
 import '../widgets/comunes.dart';
@@ -62,10 +63,9 @@ class _RutaDetalleState extends State<RutaDetalle> {
               PolylineLayer(polylines: [lineaRuta(r.trazo.puntos, r.color, ancho: 5.5)]),
               MarkerLayer(markers: [
                 for (final p in paradas) marcadorParada(p, tam: 15, onTap: () => mostrarParada(context, p)),
-                for (final sem in r.semaforosEnRuta) marcadorSemaforo(sem, alto: 22, onTap: () => mostrarSemaforo(context, sem)),
+                for (final sem in semaforos) marcadorSemaforo(sem, alto: 22, onTap: () => mostrarSemaforo(context, sem)),
               ]),
               capaCombis([r], onTap: (c) => mostrarCombi(context, c)),
-              creditosMapa(),
             ],
           ),
         ),

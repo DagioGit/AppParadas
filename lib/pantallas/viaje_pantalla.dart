@@ -301,13 +301,14 @@ class _ViajePantallaState extends State<ViajePantalla> {
                         child: Container(
                           width: Tema.b(50),
                           height: Tema.b(50),
+                          // Botón del color de la app: blanco con X roja (modo claro) o negro con X blanca (modo oscuro)
                           decoration: BoxDecoration(
-                            color: const Color(0xF0111111),
+                            color: Tema.oscuro ? const Color(0xFF1C1C1E) : const Color(0xFFFFFFFF),
                             shape: BoxShape.circle,
-                            border: Border.all(color: const Color(0x33FFFFFF), width: 1),
+                            border: Border.all(color: Tema.oscuro ? const Color(0x33FFFFFF) : const Color(0x14000000), width: 1),
                             boxShadow: Tema.sombra,
                           ),
-                          child: Icon(Icons.close_rounded, color: const Color(0xFFFFFFFF), size: Tema.b(28)),
+                          child: Icon(Icons.close_rounded, color: Tema.oscuro ? const Color(0xFFFFFFFF) : const Color(0xFFFF3B30), size: Tema.b(30)),
                         ),
                       ),
                     ),

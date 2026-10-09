@@ -247,7 +247,6 @@ class _ElegirEnMapaState extends State<ElegirEnMapa> {
             PolylineLayer(polylines: [
               for (final r in rutas) lineaRuta(r.trazo.puntos, r.color, ancho: 3, tenue: true),
             ]),
-            creditosMapa(),
           ],
         ),
         const IgnorePointer(

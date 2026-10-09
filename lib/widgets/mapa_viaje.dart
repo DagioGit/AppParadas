@@ -178,7 +178,6 @@ class _MapaViajeState extends State<MapaViaje> {
                     ),
                 ]);
               }),
-            creditosMapa(),
           ],
         ),
         // Mención de la más rápida

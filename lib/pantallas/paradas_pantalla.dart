@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' show Icons;
 import 'package:flutter_map/flutter_map.dart';
 
+import '../datos/semaforos.dart';
 import '../modelo/ruta.dart';
 import '../tema.dart';
 import '../widgets/comunes.dart';
@@ -19,28 +20,13 @@ class ParadasPantalla extends StatefulWidget {
 
 class _ParadasPantallaState extends State<ParadasPantalla> {
   final Ruta _ruta = rutaPorId('R1');
-  int _sentido = 0;
 
-  List<String> get _sentidos {
-    final vistos = <String>[];
-    for (final p in _ruta.paradas.where((p) => p.principal)) {
-      if (!vistos.contains(p.sentido)) vistos.add(p.sentido);
-    }
-    // Sólo la Ruta 1 tiene dos sentidos claros sobre la misma avenida
-    return _ruta.id == 'R1' && vistos.length == 2 ? vistos : const [];
-  }
-
-  List<Parada> get _paradas {
-    final todas = _ruta.paradas.where((p) => p.principal).toList();
-    final s = _sentidos;
-    if (s.isEmpty) return todas;
-    return todas.where((p) => p.sentido == s[_sentido.clamp(0, s.length - 1)]).toList();
-  }
+  /// Sólo las paradas de ida, hacia el malecón.
+  List<Parada> get _paradas => _ruta.paradas.where((p) => p.principal && p.sentido == 'Hacia el malecón').toList();
 
   @override
   Widget build(BuildContext context) {
     final r = _ruta;
-    final sentidos = _sentidos;
     final paradas = _paradas;
 
     return CupertinoPageScaffold(
@@ -57,21 +43,14 @@ class _ParadasPantallaState extends State<ParadasPantalla> {
               ]),
             ),
             _mapa(r),
-            if (sentidos.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
-                child: CupertinoSlidingSegmentedControl<int>(
-                  groupValue: _sentido,
-                  onValueChanged: (v) => setState(() => _sentido = v ?? 0),
-                  children: {
-                    for (var i = 0; i < sentidos.length; i++)
-                      i: Padding(
-                        padding: EdgeInsets.symmetric(vertical: Tema.b(12)),
-                        child: FittedBox(fit: BoxFit.scaleDown, child: Text(sentidos[i], maxLines: 1, style: Tema.texto(size: 17, weight: FontWeight.w700))),
-                      ),
-                  },
-                ),
-              ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(22, 14, 22, 0),
+              child: Row(children: [
+                Icon(Icons.arrow_downward_rounded, size: 22, color: Tema.gris),
+                const SizedBox(width: 6),
+                Text('Hacia el malecón', style: Tema.texto(size: 18, weight: FontWeight.w700, color: Tema.gris)),
+              ]),
+            ),
             const SizedBox(height: 10),
             ConReloj(
               cada: const Duration(seconds: 1),
@@ -114,10 +93,9 @@ class _ParadasPantallaState extends State<ParadasPantalla> {
           PolylineLayer(polylines: [lineaRuta(r.trazo.puntos, r.color, ancho: 6)]),
           MarkerLayer(markers: [
             for (final p in paradas) marcadorParada(p, tam: 16, onTap: () => mostrarParada(context, p)),
-            for (final s in r.semaforosEnRuta) marcadorSemaforo(s, alto: 26, onTap: () => mostrarSemaforo(context, s)),
+            for (final s in semaforos) marcadorSemaforo(s, alto: 26, onTap: () => mostrarSemaforo(context, s)),
           ]),
           capaCombis([r], tam: 26, onTap: (c) => mostrarCombi(context, c)),
-          creditosMapa(),
         ],
       ),
     );
