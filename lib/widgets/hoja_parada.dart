@@ -11,6 +11,7 @@ import '../pantallas/parada_3d.dart';
 import '../pantallas/ruta_detalle.dart';
 import '../tema.dart';
 import 'comunes.dart';
+import '../voz.dart';
 
 /// Abre la hoja de una parada: próximas combis con cuenta regresiva y rutas que pasan cerca.
 Future<void> mostrarParada(BuildContext context, Parada parada) {
@@ -37,10 +38,13 @@ class _HojaParadaState extends State<HojaParada> {
     _reloj = Timer.periodic(const Duration(seconds: 1), (_) {
       if (mounted) setState(() {});
     });
+    // Con "Avisos por voz", la parada se dice sola al abrirla
+    Voz.avisar(textoParada(widget.parada, segundosAhora()));
   }
 
   @override
   void dispose() {
+    Voz.callar();
     _reloj?.cancel();
     super.dispose();
   }
@@ -144,8 +148,27 @@ class _HojaParadaState extends State<HojaParada> {
               ),
             ),
           ],
+          // Señalamiento por voz: dice la parada y cuánto falta (para personas con discapacidad visual)
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            child: Semantics(
+              button: true,
+              label: 'Escuchar en voz alta cuánto falta para la combi',
+              child: CupertinoButton(
+                color: Tema.verde,
+                padding: EdgeInsets.symmetric(vertical: Tema.b(18)),
+                borderRadius: BorderRadius.circular(14),
+                onPressed: () => Voz.decir(textoParada(p, segundosAhora())),
+                child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  const Icon(Icons.volume_up_rounded, color: Color(0xFFFFFFFF), size: 28),
+                  const SizedBox(width: 8),
+                  Text('Escuchar', style: Tema.texto(size: 20, weight: FontWeight.w800, color: const Color(0xFFFFFFFF))),
+                ]),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
             child: CupertinoButton(
               color: Tema.amarillo,
               padding: EdgeInsets.symmetric(vertical: Tema.b(18)),

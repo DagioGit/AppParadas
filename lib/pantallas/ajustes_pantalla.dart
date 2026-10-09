@@ -7,6 +7,7 @@ import '../modelo/ruta.dart';
 import '../tema.dart';
 import '../widgets/comunes.dart' show ConReloj;
 import '../widgets/selector_hora.dart';
+import '../voz.dart';
 
 /// Ajustes con el estilo de la app: tarjetas grandes, colores de las rutas
 /// y botones fáciles de tocar para personas mayores y niños.
@@ -194,6 +195,22 @@ class AjustesPantalla extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(children: [
+        // Avisos por voz (para personas con discapacidad visual): mosaico ancho
+        _Mosaico(
+          icono: Icons.record_voice_over_rounded,
+          color: const Color(0xFF34C759),
+          titulo: 'Avisos por voz',
+          activo: ajustes.voz,
+          onTap: () {
+            _cambiar((a) => a.voz = !a.voz);
+            if (ajustes.voz) {
+              Voz.decir('Avisos por voz prendidos. Te voy a decir en voz alta cuánto falta para tu combi.');
+            } else {
+              Voz.callar();
+            }
+          },
+        ),
+        const SizedBox(height: 12),
         for (var f = 0; f < tiles.length; f += 2) ...[
           if (f > 0) const SizedBox(height: 12),
           IntrinsicHeight(

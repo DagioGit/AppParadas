@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../ajustes.dart';
+import '../voz.dart';
 import '../datos/lugares.dart';
 import '../estado.dart';
 import '../modelo/geo.dart';
@@ -151,6 +152,9 @@ class _ViajePantallaState extends State<ViajePantalla> {
       origenNombre: _desde!.nombre,
       destinoNombre: _hasta!.nombre,
     );
+    if (ops.isNotEmpty && enServicio(ahora)) {
+      Voz.avisar('Encontré ${ops.length} formas de llegar. ${textoOpcion(ops.first, ahora, masRapida: true)}');
+    }
     setState(() {
       _opciones = ops;
       _sel = 0;
@@ -179,6 +183,7 @@ class _ViajePantallaState extends State<ViajePantalla> {
     setState(() {
       if (_desde == null) {
         _desde = Lugar(_nombreCerca(p, 'Tu punto'), 'Marcado en el mapa', TipoLugar.mapa, p);
+        Voz.avisar('Sales de ${_desde!.nombre}. Ahora toca a dónde vas.');
       } else if (_hasta == null) {
         _hasta = Lugar(_nombreCerca(p, 'Destino'), 'Marcado en el mapa', TipoLugar.mapa, p);
       }
@@ -214,6 +219,7 @@ class _ViajePantallaState extends State<ViajePantalla> {
     void avisar(String clave, String texto) {
       if (_avisados.contains(clave)) return;
       _avisados.add(clave);
+      Voz.avisar(texto);
       if (ajustes.vibrar) HapticFeedback.heavyImpact();
       setState(() => _banner = texto);
     }
@@ -408,6 +414,22 @@ class _ViajePantallaState extends State<ViajePantalla> {
                         const SizedBox(width: 6),
                         Text('Compartir', style: Tema.texto(size: 17, weight: FontWeight.w700)),
                       ]),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  // Señalamiento por voz: dice el viaje elegido
+                  Semantics(
+                    button: true,
+                    label: 'Escuchar el viaje en voz alta',
+                    child: CupertinoButton(
+                      padding: EdgeInsets.symmetric(horizontal: Tema.b(14), vertical: Tema.b(12)),
+                      color: Tema.verde,
+                      borderRadius: BorderRadius.circular(12),
+                      onPressed: () {
+                        final o = ops[_sel.clamp(0, ops.length - 1)];
+                        Voz.decir(textoOpcion(o, segundosAhora(), masRapida: o.masRapida));
+                      },
+                      child: const Icon(Icons.volume_up_rounded, size: 26, color: Color(0xFFFFFFFF)),
                     ),
                   ),
                 ]),

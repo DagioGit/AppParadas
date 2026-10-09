@@ -135,6 +135,9 @@ List<Map<String, dynamic>> casetaModelo(Parada p, {double escala = 1, double lad
     pieza(-2.22, -1.76, 0.02, 0.26, 0.9, 0.95, '#163f78'),
     pieza(-2.22, -1.76, 0.28, 0.52, 0.9, 0.95, '#1f5f43'),
     pieza(-2.22, -1.76, 0.54, 0.78, 0.9, 0.95, '#4a5157'),
+    // Señalamiento por voz: placa con bocina, braille y botón amarillo en la columna
+    pieza(-2.02, -1.88, 0.77, 0.8, 1.15, 1.45, '#1d2a33'),
+    pieza(-1.98, -1.92, 0.755, 0.77, 1.18, 1.24, '#f2c200'),
     // Rampa azul para silla de ruedas (baja del piso de la caseta a la banqueta)
     pieza(2.4, 3.0, -1.21, -0.27, 0.0, 0.12, '#2d63c8'),
     pieza(3.0, 3.7, -1.21, -0.27, 0.0, 0.07, '#2d63c8'),

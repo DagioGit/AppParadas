@@ -10,6 +10,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:maplibre_gl/maplibre_gl.dart' as ml;
 
 import '../ajustes.dart';
+import '../voz.dart';
 import '../datos/semaforos.dart';
 import '../modelo/geo.dart';
 import '../modelo/ruta.dart';
@@ -113,10 +114,16 @@ class _ParadaVisorWeb extends StatelessWidget {
                 final llegada = r.proximaLlegada(p, ahora);
                 final falta = llegada - ahora;
                 final enParada = r.combiEnParada(p, ahora);
-                return Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                // Al tocarla, la parada se dice en voz alta (como el botón de voz de la caseta)
+                return GestureDetector(
+                  onTap: () => Voz.decir(textoParada(p, ahora)),
+                  child: Container(
+                  padding: const EdgeInsets.fromLTRB(12, 10, 16, 10),
                   decoration: BoxDecoration(color: const Color(0xF0111111), borderRadius: BorderRadius.circular(24), boxShadow: Tema.sombra),
-                  child: Text(
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    const Icon(Icons.volume_up_rounded, color: Color(0xFF34C759), size: 22),
+                    const SizedBox(width: 8),
+                    Flexible(child: Text(
                     !enServicio(ahora)
                         ? 'Combis no disponibles hasta las $horaInicioServicio'
                         : enParada
@@ -125,7 +132,9 @@ class _ParadaVisorWeb extends StatelessWidget {
                             ? 'Próxima combi en ${(falta / 60).floor()}:${(falta % 60).floor().toString().padLeft(2, '0')} · ${hora(llegada)}'
                             : 'Próxima combi a las ${hora(llegada)}',
                     style: Tema.textoFijo(size: 15, weight: FontWeight.w700, color: Tema.amarillo),
-                  ),
+                  )),
+                  ]),
+                ),
                 );
               },
             ),
